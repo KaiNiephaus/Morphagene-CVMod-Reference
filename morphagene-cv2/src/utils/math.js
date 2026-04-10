@@ -122,8 +122,10 @@ export function computeModCV(src, t, inp) {
   }
 
   if (src.type === "sh") {
+    if (t <= 0) return clamp(min + 0.5 * range * src.amplitude, min, max)
     const step = Math.floor(t * src.rate)
-    const hash = (((step * 1664525 + 1013904223) >>> 0) / 0xffffffff)
+    // Use a better hash that produces values spread across the full range
+    const hash = ((((step + 1) * 1664525 + 1013904223) ^ (step * 22695477)) >>> 0) / 0xffffffff
     return clamp(min + hash * range * src.amplitude, min, max)
   }
 
@@ -138,6 +140,21 @@ export function computeModCV(src, t, inp) {
  * @param {number} res     - number of samples
  */
 export function buildTimeDomain(src, inp, seconds = 5, res = 200) {
+  if (src.type === "sh") {
+    // For S&H, sample at step boundaries to draw a proper staircase
+    const stepDuration = 1 / Math.max(0.05, src.rate)
+    const totalSteps   = Math.ceil(seconds / stepDuration)
+    const points       = []
+    for (let s = 0; s < totalSteps; s++) {
+      const tStart = s * stepDuration
+      const tEnd   = Math.min((s + 1) * stepDuration, seconds)
+      const cv     = computeModCV(src, tStart + 0.001, inp)
+      // Two points per step — flat horizontal line then vertical jump
+      points.push({ t: +tStart.toFixed(3), cv: +cv.toFixed(4) })
+      points.push({ t: +tEnd.toFixed(3),   cv: +cv.toFixed(4) })
+    }
+    return points
+  }
   return Array.from({ length: res }, (_, i) => {
     const t = (i / res) * seconds
     return { t: +t.toFixed(3), cv: +computeModCV(src, t, inp).toFixed(4) }

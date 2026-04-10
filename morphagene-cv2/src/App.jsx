@@ -63,7 +63,11 @@ export default function App() {
       const src = modSources[i.id]
       out[i.id] = src.type === "static"
         ? src.staticVal
-        : isPlaying ? computeModCV(src, animTime, i) : computeModCV(src, 0, i)
+        : isPlaying
+          ? computeModCV(src, animTime, i)
+          : src.type === "sh"
+            ? computeModCV(src, 0.001, i)   // give S&H a non-zero seed when stopped
+            : computeModCV(src, 0, i)
     })
     return out
   }, [modSources, animTime, isPlaying])
