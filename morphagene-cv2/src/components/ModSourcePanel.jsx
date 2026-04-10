@@ -75,7 +75,10 @@ export function ModSourcePanel({ src, onChange, inp, col, isPlaying, onTogglePla
           ))}
         </div>
         <PSlider label="RATE"      value={src.rate}      min={0.05} max={4} step={0.01} unit="Hz" col={col} onChange={v => set("rate", v)}      T={T} />
-        <PSlider label="AMPLITUDE" value={src.amplitude} min={0}    max={1} step={0.01} unit="×"  col={col} onChange={v => set("amplitude", v)} T={T} />
+        <PSlider label="AMPLITUDE"
+          value={+(src.amplitude * (inp.max - inp.min) / 2).toFixed(2)}
+          min={0} max={(inp.max - inp.min) / 2} step={0.05} unit="V"
+          col={col} onChange={v => set("amplitude", v / Math.max(0.01, (inp.max - inp.min) / 2))} T={T} />
       </>)}
 
       {/* ── ENVELOPE ── */}
@@ -83,7 +86,10 @@ export function ModSourcePanel({ src, onChange, inp, col, isPlaying, onTogglePla
         <PSlider label="RATE"      value={src.rate}       min={0.1}  max={4}   step={0.05} unit="Hz" col={col} onChange={v => set("rate", v)}       T={T} />
         <PSlider label="ATTACK"    value={src.attackTime} min={0.01} max={0.9} step={0.01} unit="s"  col={col} onChange={v => set("attackTime", v)} T={T} />
         <PSlider label="DECAY"     value={src.decayTime}  min={0.01} max={0.9} step={0.01} unit="s"  col={col} onChange={v => set("decayTime", v)}  T={T} />
-        <PSlider label="AMPLITUDE" value={src.amplitude}  min={0}    max={1}   step={0.01} unit="×"  col={col} onChange={v => set("amplitude", v)} T={T} />
+        <PSlider label="PEAK CV"
+          value={+(inp.min + src.amplitude * (inp.max - inp.min)).toFixed(2)}
+          min={inp.min} max={inp.max} step={0.05} unit="V"
+          col={col} onChange={v => set("amplitude", (v - inp.min) / Math.max(0.01, inp.max - inp.min))} T={T} />
       </>)}
 
       {/* ── S&H ── */}
