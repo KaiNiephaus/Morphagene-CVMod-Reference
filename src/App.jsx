@@ -233,7 +233,6 @@ export default function App() {
               firmOpts={firmOpts}
               T={T} col={col}
               spliceCount={spliceCount}
-              modSrc={modSources[activeId]}
             />
           </div>
         </div>

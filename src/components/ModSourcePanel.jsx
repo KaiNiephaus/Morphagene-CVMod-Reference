@@ -88,8 +88,8 @@ export function ModSourcePanel({ src, onChange, inp, col, isPlaying, onTogglePla
 
       {/* ── S&H ── */}
       {src.type === "sh" && (<>
-        <PSlider label="CLOCK RATE" value={src.rate}                          min={0.1} max={8} step={0.05} unit="Hz" col={col} onChange={v=>set("rate",v)}                               T={T} />
-        <PSlider label="RANGE"      value={+(src.amplitude*(inp.max-inp.min)+inp.min).toFixed(2)} min={inp.min} max={inp.max} step={0.01} unit="V"  col={col} onChange={v=>set("amplitude",(v-inp.min)/Math.max(0.01,inp.max-inp.min))} T={T} />
+        <PSlider label="CLOCK RATE" value={src.rate}      min={0.1} max={8} step={0.05} unit="Hz" col={col} onChange={v => set("rate", v)}      T={T} />
+        <PSlider label="RANGE"      value={src.amplitude} min={0}   max={1} step={0.01} unit="×"  col={col} onChange={v => set("amplitude", v)} T={T} />
       </>)}
 
       {/* ── Play button ── */}

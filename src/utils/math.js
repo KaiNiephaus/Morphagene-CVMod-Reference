@@ -141,15 +141,17 @@ export function computeModCV(src, t, inp) {
  */
 export function buildTimeDomain(src, inp, seconds = 5, res = 200) {
   if (src.type === "sh") {
+    // For S&H, sample at step boundaries to draw a proper staircase
     const stepDuration = 1 / Math.max(0.05, src.rate)
     const totalSteps   = Math.ceil(seconds / stepDuration)
     const points       = []
     for (let s = 0; s < totalSteps; s++) {
-      const tStart = +(s * stepDuration).toFixed(3)
-      const tEnd   = +(Math.min((s + 1) * stepDuration, seconds)).toFixed(3)
-      const cv     = +computeModCV(src, tStart + 0.0001, inp).toFixed(4)
-      points.push({ t: tStart, cv })
-      points.push({ t: tEnd - 0.001, cv })
+      const tStart = s * stepDuration
+      const tEnd   = Math.min((s + 1) * stepDuration, seconds)
+      const cv     = computeModCV(src, tStart + 0.001, inp)
+      // Two points per step — flat horizontal line then vertical jump
+      points.push({ t: +tStart.toFixed(3), cv: +cv.toFixed(4) })
+      points.push({ t: +tEnd.toFixed(3),   cv: +cv.toFixed(4) })
     }
     return points
   }
