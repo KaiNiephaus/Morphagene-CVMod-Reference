@@ -245,6 +245,23 @@ class AudioEngine {
     bufGain.gain.setTargetAtTime(bufferAmt * 0.2, this.ctx.currentTime, 0.08)
   }
 
+  // ── Silence all voices except the active one ──────────────────────────────
+  setActiveVoice(id) {
+    if (!this._ready) return
+    const t = this.ctx.currentTime
+    Object.entries(this.voices).forEach(([key, voice]) => {
+      if (!voice || key === id) return
+      if (key === "morph") {
+        voice.gains?.forEach(g => g.gain.setTargetAtTime(0, t, 0.05))
+      } else if (key === "sos") {
+        voice.liveGain?.gain.setTargetAtTime(0, t, 0.05)
+        voice.bufGain?.gain.setTargetAtTime(0, t, 0.05)
+      } else {
+        voice.gain?.gain.setTargetAtTime(0, t, 0.05)
+      }
+    })
+  }
+
   destroy() {
     this.stopAll()
     this.ctx?.close()

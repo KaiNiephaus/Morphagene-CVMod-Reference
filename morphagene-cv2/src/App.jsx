@@ -75,9 +75,9 @@ export default function App() {
   // Drive audio engine every frame when playing
   useEffect(() => {
     if (isPlaying && audioEnabled) {
-      updateAudio(animCV, { ...firmOpts, spliceCount })
+      updateAudio(animCV, { ...firmOpts, spliceCount }, activeId)
     }
-  }, [animCV, isPlaying, audioEnabled, updateAudio, firmOpts, spliceCount])
+  }, [animCV, isPlaying, audioEnabled, updateAudio, firmOpts, spliceCount, activeId])
 
   // ── Time domain preview data ───────────────────────────────────────────────
   const inp = INPUT_MAP[activeId]

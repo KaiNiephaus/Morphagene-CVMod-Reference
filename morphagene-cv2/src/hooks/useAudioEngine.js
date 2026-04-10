@@ -29,32 +29,40 @@ export function useAudioEngine() {
     }
   }, [audioEnabled, engine])
 
-  // Update all voices given current animCV values
-  const updateAudio = useCallback((animCV, firmOpts = {}) => {
+  // Update only the active voice — all others are silenced
+  const updateAudio = useCallback((animCV, firmOpts = {}, activeId = "varispeed") => {
     if (!engine.ready || !audioEnabled) return
 
-    const vsMetrics = getVSMetrics(animCV.varispeed, firmOpts.vsop || 0)
-    engine.setVarispeed(animCV.varispeed, vsMetrics.speed)
+    engine.setActiveVoice(activeId)
 
-    const grainPct = (1 - clamp(animCV.genesize, 0, 8) / 8) * 100
-    engine.setGeneSize(animCV.genesize, grainPct)
+    if (activeId === "varispeed") {
+      const vsMetrics = getVSMetrics(animCV.varispeed, firmOpts.vsop || 0)
+      engine.setVarispeed(animCV.varispeed, vsMetrics.speed)
 
-    const posPct = clamp(animCV.slide, 0, 8) / 8 * 100
-    engine.setSlide(animCV.slide, posPct)
+    } else if (activeId === "genesize") {
+      const grainPct = (1 - clamp(animCV.genesize, 0, 8) / 8) * 100
+      engine.setGeneSize(animCV.genesize, grainPct)
 
-    const stage = getMorphStage(animCV.morph)
-    engine.setMorph(animCV.morph, stage)
+    } else if (activeId === "slide") {
+      const posPct = clamp(animCV.slide, 0, 8) / 8 * 100
+      engine.setSlide(animCV.slide, posPct)
 
-    // Organize: trigger a click when splice selection changes
-    const spliceCount  = firmOpts.spliceCount || 8
-    const spliceIndex  = Math.min(spliceCount - 1, Math.floor((clamp(animCV.organize, 0, 5) / 5) * spliceCount))
-    if (spliceIndex !== prevOrg.current) {
-      engine.triggerOrganize(spliceIndex)
-      prevOrg.current = spliceIndex
+    } else if (activeId === "morph") {
+      const stage = getMorphStage(animCV.morph)
+      engine.setMorph(animCV.morph, stage)
+
+    } else if (activeId === "organize") {
+      const spliceCount = firmOpts.spliceCount || 8
+      const spliceIndex = Math.min(spliceCount - 1, Math.floor((clamp(animCV.organize, 0, 5) / 5) * spliceCount))
+      if (spliceIndex !== prevOrg.current) {
+        engine.triggerOrganize(spliceIndex)
+        prevOrg.current = spliceIndex
+      }
+
+    } else if (activeId === "sos") {
+      const bufAmt = clamp(animCV.sos, 0, 8) / 8
+      engine.setSOS(animCV.sos, 1 - bufAmt, bufAmt)
     }
-
-    const bufAmt  = clamp(animCV.sos, 0, 8) / 8
-    engine.setSOS(animCV.sos, 1 - bufAmt, bufAmt)
   }, [audioEnabled, engine])
 
   // Clean up on unmount
