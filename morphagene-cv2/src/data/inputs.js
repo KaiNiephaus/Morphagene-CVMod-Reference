@@ -35,8 +35,7 @@ export const INPUTS = [
   },
   {
     id: "morph",
-    label: "MORPH",
-    short: "MO",
+    short: "MORPH",
     min: 0, max: 5, defaultCv: 0,
     firmware: [
       { key: "ckop", label: "CLK MODE", options: ["Auto", "Force Gene Shift", "Force Time Stretch"] }
