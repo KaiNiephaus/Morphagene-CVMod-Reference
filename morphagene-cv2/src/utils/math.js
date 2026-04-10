@@ -83,7 +83,7 @@ export const DEFAULT_MOD = {
   staticVal: 0,
   shape: "sine",
   rate: 0.3,
-  amplitude: 0.85,
+  amplitude: 1.0,
   attackTime: 0.15,
   decayTime: 0.4,
 }
@@ -122,10 +122,12 @@ export function computeModCV(src, t, inp) {
   }
 
   if (src.type === "sh") {
-    if (t <= 0) return clamp(min + 0.5 * range * src.amplitude, min, max)
-    const step = Math.floor(t * src.rate)
-    // Use a better hash that produces values spread across the full range
-    const hash = ((((step + 1) * 1664525 + 1013904223) ^ (step * 22695477)) >>> 0) / 0xffffffff
+    const step = Math.floor(Math.max(0, t) * src.rate)
+    // Mulberry32 — good distribution for small integers
+    let z = (step + 0x6D2B79F5) >>> 0
+    z = Math.imul(z ^ z >>> 15, z | 1)
+    z ^= z + Math.imul(z ^ z >>> 7, z | 61)
+    const hash = ((z ^ z >>> 14) >>> 0) / 0xffffffff
     return clamp(min + hash * range * src.amplitude, min, max)
   }
 
