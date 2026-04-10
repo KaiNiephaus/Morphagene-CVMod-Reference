@@ -127,17 +127,9 @@ export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, fi
             <XAxis dataKey="t" stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }}
               label={{ value: "t (s)", fill: T.muted, fontSize: 10, position: "insideBottomRight", offset: -4 }} />
             <YAxis stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }} domain={[inp.min, inp.max]} />
-            {tdPlayhead !== null && (() => {
-        // For S&H, snap playhead to the nearest staircase point so it stays visible
-        let px = +tdPlayhead.toFixed(3)
-        if (src.type === "sh" && timeDomain.length > 0) {
-          const closest = timeDomain.reduce((prev, cur) =>
-            Math.abs(cur.t - px) < Math.abs(prev.t - px) ? cur : prev
-          )
-          px = closest.t
-        }
-        return <ReferenceLine x={px} stroke={col} strokeWidth={2.5} opacity={0.9} />
-      })()}
+            {tdPlayhead !== null && modSrc?.type !== "sh" && (
+        <ReferenceLine x={+tdPlayhead.toFixed(3)} stroke={col} strokeWidth={2.5} opacity={0.9} />
+      )}
             <defs>
               <linearGradient id={`td-${inp.id}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={col} stopOpacity={0.35} />
@@ -145,7 +137,7 @@ export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, fi
               </linearGradient>
             </defs>
             <Tooltip content={TT} />
-            <Area type="monotone" dataKey="cv" name="CV" stroke={col}
+            <Area type={modSrc?.type === "sh" ? "stepAfter" : "monotone"} dataKey="cv" name="CV" stroke={col}
               fill={`url(#td-${inp.id})`} dot={false} strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
