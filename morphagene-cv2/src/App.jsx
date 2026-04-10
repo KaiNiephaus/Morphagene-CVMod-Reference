@@ -267,6 +267,7 @@ export default function App() {
               T={T} col={col}
               spliceCount={spliceCount}
               modSrc={modSources[activeId]}
+              windowSize={WINDOW}
             />
           </div>
         </div>
