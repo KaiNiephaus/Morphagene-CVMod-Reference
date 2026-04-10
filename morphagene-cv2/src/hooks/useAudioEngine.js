@@ -29,6 +29,12 @@ export function useAudioEngine() {
     }
   }, [audioEnabled, engine])
 
+  // Mute all voices without changing the global audio enabled state
+  const pauseAudio = useCallback(() => {
+    if (!engine.ready) return
+    engine.setActiveVoice("")   // empty string never matches any key → all silenced
+  }, [engine])
+
   // Update only the active voice — all others are silenced
   const updateAudio = useCallback((animCV, firmOpts = {}, activeId = "varispeed") => {
     if (!engine.ready || !audioEnabled) return
@@ -70,5 +76,5 @@ export function useAudioEngine() {
     return () => { engine.destroy() }
   }, [engine])
 
-  return { audioEnabled, toggleAudio, updateAudio }
+  return { audioEnabled, toggleAudio, updateAudio, pauseAudio }
 }

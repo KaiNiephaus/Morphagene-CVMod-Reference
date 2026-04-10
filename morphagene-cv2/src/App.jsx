@@ -54,7 +54,7 @@ export default function App() {
   }, [isPlaying, resetTime])
 
   // ── Audio engine ───────────────────────────────────────────────────────────
-  const { audioEnabled, toggleAudio, updateAudio } = useAudioEngine()
+  const { audioEnabled, toggleAudio, updateAudio, pauseAudio } = useAudioEngine()
 
   // ── Computed CV values (live during animation, static otherwise) ───────────
   const animCV = useMemo(() => {
@@ -78,6 +78,11 @@ export default function App() {
       updateAudio(animCV, { ...firmOpts, spliceCount }, activeId)
     }
   }, [animCV, isPlaying, audioEnabled, updateAudio, firmOpts, spliceCount, activeId])
+
+  // Mute all voices when playback stops (global audio state unchanged)
+  useEffect(() => {
+    if (!isPlaying) pauseAudio()
+  }, [isPlaying, pauseAudio])
 
   // ── Time domain preview data ───────────────────────────────────────────────
   const inp = INPUT_MAP[activeId]

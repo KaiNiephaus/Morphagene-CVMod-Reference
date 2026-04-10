@@ -127,13 +127,21 @@ export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, fi
             <XAxis
               dataKey="t" stroke={T.border2}
               tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }}
-              label={{ value: "t (s)", fill: T.muted, fontSize: 10, position: "insideBottomRight", offset: -4 }}
               domain={isPlaying && timeDomain.length > 0
                 ? [timeDomain[0].t, timeDomain[0].t + windowSize]
                 : [0, windowSize]}
+              ticks={isPlaying && timeDomain.length > 0
+                ? Array.from({ length: windowSize + 1 }, (_, i) => timeDomain[0].t + i)
+                : Array.from({ length: windowSize + 1 }, (_, i) => i)}
+              tickFormatter={v => {
+                const rel = isPlaying && timeDomain.length > 0 ? Math.round(v - timeDomain[0].t) : v
+                return rel === windowSize ? `${rel}s` : String(rel)
+              }}
               type="number"
             />
-            <YAxis stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }} domain={[inp.min, inp.max]} />
+            <YAxis stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }} domain={[inp.min, inp.max]}
+              tickFormatter={v => v === inp.max ? `${v}V` : String(v)}
+            />
             {isPlaying && timeDomain.length > 0 && (
         <ReferenceLine x={timeDomain[0].t} stroke={col} strokeWidth={2} opacity={0.85} />
       )}
