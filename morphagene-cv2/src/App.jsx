@@ -1,5 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react"
-
+import { useState, useMemo, useCallback, useEffect, useRef } from "react"
 // ── Theme ────────────────────────────────────────────────────────────────────
 import { DARK, LIGHT, DARK_COLORS, LIGHT_COLORS } from "./theme.js"
 
@@ -47,6 +46,7 @@ export default function App() {
   // ── Playback ───────────────────────────────────────────────────────────────
   const [isPlaying, setIsPlaying] = useState(false)
   const { animTime, resetTime }   = useAnimationFrame(isPlaying)
+  const rollingBuffer = useRef({})
 
   const handleTogglePlay = useCallback(() => {
     if (isPlaying) { resetTime() }
@@ -80,13 +80,46 @@ export default function App() {
   }, [animCV, isPlaying, audioEnabled, updateAudio, firmOpts, spliceCount])
 
   // ── Time domain preview data ───────────────────────────────────────────────
-  const inp        = INPUT_MAP[activeId]
-  const col        = getColor(activeId)
+  const inp = INPUT_MAP[activeId]
+  const col = getColor(activeId)
+
+  // Rolling buffer — 5 second window, updated every frame when playing
+  const WINDOW    = 5
+  const BUFFER_LEN = 200
+
   const timeDomain = useMemo(() => {
     const src = modSources[activeId]
     if (src.type === "static") return []
-    return buildTimeDomain(src, inp, 5, 200)
-  }, [modSources, activeId, inp])
+
+    if (!isPlaying) {
+      // Static preview before play is pressed
+      return buildTimeDomain(src, inp, WINDOW, BUFFER_LEN)
+    }
+
+    // Build rolling window: last 5 seconds of history
+    const buf = rollingBuffer.current[activeId] || []
+    return buf
+  }, [modSources, activeId, inp, isPlaying, animTime])
+
+  // Update rolling buffer every frame
+  useEffect(() => {
+    if (!isPlaying) {
+      rollingBuffer.current = {}
+      return
+    }
+    INPUTS.forEach(i => {
+      const src = modSources[i.id]
+      if (src.type === "static") return
+
+      const buf     = rollingBuffer.current[i.id] || []
+      const newCV   = +computeModCV(src, animTime, i).toFixed(4)
+      const newPoint = { t: +animTime.toFixed(3), cv: newCV }
+
+      // Keep only last WINDOW seconds
+      const trimmed = [...buf, newPoint].filter(p => p.t >= animTime - WINDOW)
+      rollingBuffer.current[i.id] = trimmed
+    })
+  }, [animTime, isPlaying, modSources])
 
   const setModSource = useCallback((id, v) => setModSources(p => ({ ...p, [id]: v })), [])
 

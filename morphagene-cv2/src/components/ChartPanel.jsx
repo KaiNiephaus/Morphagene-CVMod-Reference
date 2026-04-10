@@ -16,7 +16,7 @@ const MF = "'DM Mono','Fira Code',monospace"
 // ── ChartPanel ───────────────────────────────────────────────────────────────
 // Right-hand panel: all charts, stat blocks, and notes for the active input.
 
-export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, firmOpts, T, col, spliceCount, modSrc }) {  const cv   = currentCV
+export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, firmOpts, T, col, spliceCount, modSrc, windowSize = 5 }) {  const cv   = currentCV
   const sCV  = snap1(clamp(cv, inp.min, inp.max))
   const TT   = useMemo(() => makeTooltip(T), [T])
   const dotR = isPlaying ? 7 : 5
@@ -124,11 +124,21 @@ export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, fi
         <ResponsiveContainer width="100%" height={110}>
           <AreaChart data={timeDomain} margin={{ left: -10, right: 10, top: 4, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
-            <XAxis dataKey="t" stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }}
-              label={{ value: "t (s)", fill: T.muted, fontSize: 10, position: "insideBottomRight", offset: -4 }} />
+            <XAxis
+              dataKey="t" stroke={T.border2}
+              tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }}
+              label={{ value: "t (s)", fill: T.muted, fontSize: 10, position: "insideBottomRight", offset: -4 }}
+              domain={isPlaying && timeDomain.length > 0
+                ? [timeDomain[0].t, timeDomain[0].t + windowSize]
+                : [0, windowSize]}
+              type="number"
+            />
             <YAxis stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }} domain={[inp.min, inp.max]} />
-            {tdPlayhead !== null && modSrc?.type !== "sh" && (
-        <ReferenceLine x={+tdPlayhead.toFixed(3)} stroke={col} strokeWidth={2.5} opacity={0.9} />
+            {isPlaying && timeDomain.length > 0 && (
+        <ReferenceLine x={timeDomain[0].t} stroke={col} strokeWidth={2} opacity={0.85} />
+      )}
+      {!isPlaying && tdPlayhead !== null && modSrc?.type !== "sh" && (
+        <ReferenceLine x={+tdPlayhead.toFixed(3)} stroke={col} strokeWidth={2} opacity={0.85} />
       )}
             <defs>
               <linearGradient id={`td-${inp.id}`} x1="0" y1="0" x2="0" y2="1">
@@ -137,8 +147,12 @@ export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, fi
               </linearGradient>
             </defs>
             <Tooltip content={TT} />
-            <Area type={modSrc?.type === "sh" ? "stepAfter" : "monotone"} dataKey="cv" name="CV" stroke={col}
-              fill={`url(#td-${inp.id})`} dot={false} strokeWidth={2} />
+            <Area
+              type={modSrc?.type === "sh" ? "stepAfter" : "monotone"}
+              dataKey="cv" name="CV" stroke={col}
+              fill={`url(#td-${inp.id})`} dot={false} strokeWidth={2}
+              isAnimationActive={false}
+            />
           </AreaChart>
         </ResponsiveContainer>
       </>)}
