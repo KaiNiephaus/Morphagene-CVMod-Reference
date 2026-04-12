@@ -1,8 +1,7 @@
 import { useState } from "react"
 import { INPUTS, INPUT_MAP } from "../data/inputs.js"
 import { MATRIX_CELLS } from "../data/matrixCells.js"
-
-const MF = "'DM Mono','Fira Code',monospace"
+import { MF } from "../theme.js"
 
 const LEVEL_STYLE = [
   null,
@@ -21,7 +20,7 @@ function getCell(a, b) {
 // 6×6 grid showing notable cross-input patch combinations.
 // Hover to read description, click to jump to that input.
 
-export function InteractionMatrix({ onSelectPair, getColor, T }) {
+export function InteractionMatrix({ onSelect, getColor, T }) {
   const [hovered, setHovered] = useState(null)
 
   return (
@@ -100,7 +99,7 @@ export function InteractionMatrix({ onSelectPair, getColor, T }) {
                       <div
                         onMouseEnter={() => setHovered(hk)}
                         onMouseLeave={() => setHovered(null)}
-                        onClick={() => onSelectPair(row.id, col2.id)}
+                        onClick={() => onSelect(row.id)}
                         style={{
                           width: 40, height: 30, borderRadius: 2, cursor: "pointer",
                           background: isH ? ls.bg + "cc" : ls.bg,

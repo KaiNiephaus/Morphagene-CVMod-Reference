@@ -1,7 +1,6 @@
 import { TrackSlider } from "./TrackSlider.jsx"
 import { Label } from "./atoms.jsx"
-
-const MF = "'DM Mono','Fira Code',monospace"
+import { MF } from "../theme.js"
 
 // ── PSlider ── small labelled slider used inside ModSourcePanel ──────────────
 function PSlider({ label, value, min, max, step, unit, col, onChange, T }) {
@@ -83,9 +82,8 @@ export function ModSourcePanel({ src, onChange, inp, col, isPlaying, onTogglePla
 
       {/* ── ENVELOPE ── */}
       {src.type === "envelope" && (<>
-        <PSlider label="RATE"      value={src.rate}       min={0.1}  max={4}   step={0.05} unit="Hz" col={col} onChange={v => set("rate", v)}       T={T} />
-        <PSlider label="ATTACK"    value={src.attackTime} min={0.01} max={0.9} step={0.01} unit="s"  col={col} onChange={v => set("attackTime", v)} T={T} />
-        <PSlider label="DECAY"     value={src.decayTime}  min={0.01} max={0.9} step={0.01} unit="s"  col={col} onChange={v => set("decayTime", v)}  T={T} />
+        <PSlider label="ATTACK"    value={src.attackTime} min={0.01} max={20}  step={0.01} unit="s"  col={col} onChange={v => set("attackTime", v)} T={T} />
+        <PSlider label="DECAY"     value={src.decayTime}  min={0.01} max={60}  step={0.05} unit="s"  col={col} onChange={v => set("decayTime", v)}  T={T} />
         <PSlider label="PEAK CV"
           value={+(inp.min + src.amplitude * (inp.max - inp.min)).toFixed(2)}
           min={inp.min} max={inp.max} step={0.05} unit="V"

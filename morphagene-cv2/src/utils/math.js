@@ -84,8 +84,8 @@ export const DEFAULT_MOD = {
   shape: "sine",
   rate: 0.3,
   amplitude: 1.0,
-  attackTime: 0.15,
-  decayTime: 0.4,
+  attackTime: 0.5,
+  decayTime: 2.0,
 }
 
 /**
@@ -112,12 +112,14 @@ export function computeModCV(src, t, inp) {
   }
 
   if (src.type === "envelope") {
-    const period = 1 / Math.max(0.05, src.rate)
-    const phase  = (t % period) / period
+    const atk    = Math.max(0.01, src.attackTime)
+    const dcy    = Math.max(0.01, src.decayTime)
+    const period = atk + dcy
+    const phase  = t % period   // absolute seconds within cycle
     const env    =
-      phase < src.attackTime                       ? phase / src.attackTime
-      : phase < src.attackTime + src.decayTime     ? 1 - (phase - src.attackTime) / src.decayTime
-      :                                              0
+      phase < atk      ? phase / atk
+      : phase < period ? 1 - (phase - atk) / dcy
+      :                  0
     return clamp(min + env * range * src.amplitude, min, max)
   }
 
@@ -155,8 +157,19 @@ export function buildTimeDomain(src, inp, seconds = 5, res = 200) {
     }
     return points
   }
+  // For envelope: auto-scale preview to exactly one full AD cycle
+  const effectiveSecs = src.type === "envelope"
+    ? Math.max(0.01, src.attackTime) + Math.max(0.01, src.decayTime)
+    : seconds
   return Array.from({ length: res }, (_, i) => {
-    const t = (i / res) * seconds
+    const t = (i / res) * effectiveSecs
     return { t: +t.toFixed(3), cv: +computeModCV(src, t, inp).toFixed(4) }
   })
+}
+
+/** Returns the preview window length in seconds for the given mod source. */
+export function getPreviewWindow(src, fallback = 5) {
+  if (src.type === "envelope")
+    return Math.max(0.01, src.attackTime) + Math.max(0.01, src.decayTime)
+  return fallback
 }

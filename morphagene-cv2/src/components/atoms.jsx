@@ -1,7 +1,7 @@
 // ── Shared atom components ───────────────────────────────────────────────────
 // Small, stateless building blocks used across the app.
 
-const MF = "'DM Mono','Fira Code',monospace"
+import { MF } from "../theme.js"
 
 export function Pill({ children, color }) {
   return (

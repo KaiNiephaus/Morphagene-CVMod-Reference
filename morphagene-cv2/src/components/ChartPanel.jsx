@@ -9,14 +9,14 @@ import { GrainOverlapViz } from "./GrainOverlapViz.jsx"
 import {
   clamp, snap1, getVSMetrics, getMorphStage,
   vsPoints, gsPoints, slPoints, moPoints, orPoints, sosPoints,
+  getPreviewWindow,
 } from "../utils/math.js"
-
-const MF = "'DM Mono','Fira Code',monospace"
+import { MF } from "../theme.js"
 
 // ── ChartPanel ───────────────────────────────────────────────────────────────
 // Right-hand panel: all charts, stat blocks, and notes for the active input.
 
-export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, firmOpts, T, col, spliceCount, modSrc, windowSize = 5 }) {  const cv   = currentCV
+export function ChartPanel({ inp, currentCV, timeDomain, isPlaying, firmOpts, T, col, spliceCount, modSrc, windowSize = 5 }) {  const cv   = currentCV
   const sCV  = snap1(clamp(cv, inp.min, inp.max))
   const TT   = useMemo(() => makeTooltip(T), [T])
   const dotR = isPlaying ? 7 : 5
@@ -106,7 +106,15 @@ export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, fi
     return []
   }, [inp.id, cv, firmOpts, morphStage, spliceCount, col, T])
 
-  const tdPlayhead = isPlaying ? (animTime % 5) : null
+  // Preview window: envelope auto-scales to one full cycle; others use windowSize
+  const previewWindow = isPlaying ? windowSize : getPreviewWindow(modSrc, windowSize)
+
+  // Smart tick spacing for the x-axis — avoids label crowding on long windows
+  function smartTicks(totalSecs, offsetFrom = 0) {
+    const step = totalSecs <= 5 ? 1 : totalSecs <= 20 ? 2 : totalSecs <= 40 ? 5 : 10
+    const count = Math.floor(totalSecs / step)
+    return Array.from({ length: count + 1 }, (_, i) => +(offsetFrom + i * step).toFixed(3))
+  }
 
   return (
     <div style={{ height: "100%", overflowY: "auto", paddingBottom: 32 }}>
@@ -129,13 +137,14 @@ export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, fi
               tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }}
               domain={isPlaying && timeDomain.length > 0
                 ? [timeDomain[0].t, timeDomain[0].t + windowSize]
-                : [0, windowSize]}
+                : [0, previewWindow]}
               ticks={isPlaying && timeDomain.length > 0
-                ? Array.from({ length: windowSize + 1 }, (_, i) => timeDomain[0].t + i)
-                : Array.from({ length: windowSize + 1 }, (_, i) => i)}
+                ? smartTicks(windowSize, timeDomain[0].t)
+                : smartTicks(previewWindow)}
               tickFormatter={v => {
-                const rel = isPlaying && timeDomain.length > 0 ? Math.round(v - timeDomain[0].t) : v
-                return rel === windowSize ? `${rel}s` : String(rel)
+                const rel = isPlaying && timeDomain.length > 0 ? v - timeDomain[0].t : v
+                const rounded = +rel.toFixed(1)
+                return rounded === previewWindow || rounded === windowSize ? `${rounded}s` : String(rounded)
               }}
               type="number"
             />
@@ -143,11 +152,8 @@ export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, fi
               tickFormatter={v => v === inp.max ? `${v}V` : String(v)}
             />
             {isPlaying && timeDomain.length > 0 && (
-        <ReferenceLine x={timeDomain[0].t} stroke={col} strokeWidth={2} opacity={0.85} />
-      )}
-      {!isPlaying && tdPlayhead !== null && modSrc?.type !== "sh" && (
-        <ReferenceLine x={+tdPlayhead.toFixed(3)} stroke={col} strokeWidth={2} opacity={0.85} />
-      )}
+              <ReferenceLine x={timeDomain[0].t} stroke={col} strokeWidth={2} opacity={0.85} />
+            )}
             <defs>
               <linearGradient id={`td-${inp.id}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={col} stopOpacity={0.35} />
@@ -230,10 +236,13 @@ export function ChartPanel({ inp, currentCV, timeDomain, animTime, isPlaying, fi
         </ResponsiveContainer>
         <ChartTitle T={T}>Grain Envelope Size (relative, live)</ChartTitle>
         <div style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 3, padding: "12px 16px", marginBottom: 4 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontFamily: MF, fontSize: 9, color: T.muted }}>SPLICE WINDOW ▶ GENE WINDOW</span>
+            <span style={{ fontFamily: MF, fontSize: 11, color: col, fontWeight: 500 }}>{((1 - clamp(cv, 0, 8) / 8) * 100).toFixed(1)}%</span>
+          </div>
           <div style={{ position: "relative", height: 30, background: T.dim, borderRadius: 2, overflow: "hidden" }}>
-            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${(1 - clamp(cv, 0, 8) / 8) * 100}%`, background: col, opacity: 0.22, transition: "width 0.04s linear" }} />
-            <div style={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", width: `${(1 - clamp(cv, 0, 8) / 8) * 100}%`, height: 2, background: col, boxShadow: `0 0 8px ${col}`, transition: "width 0.04s linear" }} />
-            <div style={{ position: "absolute", top: 6, left: 8, fontFamily: MF, fontSize: 9, color: T.muted }}>SPLICE WINDOW ▶ GENE WINDOW</div>
+            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${(1 - clamp(cv, 0, 8) / 8) * 100}%`, background: col, opacity: 0.22 }} />
+            <div style={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", width: `${(1 - clamp(cv, 0, 8) / 8) * 100}%`, height: 2, background: col, boxShadow: `0 0 8px ${col}` }} />
           </div>
         </div>
         <Note T={T}>Unipolar 0–8V (negative CV clamped). Gene Size is time-based, not sample-count-based — grain duration stays consistent regardless of Vari-Speed. Toggle <Mono T={T}>gnsm 1</Mono> in Firmware tab — the grain overlap visualiser on the MORPH panel reflects the grain edge style.</Note>

@@ -1,13 +1,12 @@
 import { Label } from "./atoms.jsx"
 import { FW_NOTES } from "../data/firmwareNotes.js"
-
-const MF = "'DM Mono','Fira Code',monospace"
+import { MF } from "../theme.js"
 
 // ── FirmwarePanel ────────────────────────────────────────────────────────────
 // Shows firmware toggle buttons for the active input.
 // Firmware options are defined per-input in src/data/inputs.js.
 
-export function FirmwarePanel({ inp, firmOpts, setFirmOpts, col, T }) {
+export function FirmwarePanel({ inp, firmOpts, onOptionChange, col, T }) {
   if (!inp.firmware.length) {
     return (
       <div style={{
@@ -31,7 +30,7 @@ export function FirmwarePanel({ inp, firmOpts, setFirmOpts, col, T }) {
               return (
                 <button
                   key={i}
-                  onClick={() => setFirmOpts(p => ({ ...p, [fw.key]: i }))}
+                  onClick={() => onOptionChange(fw.key, i)}
                   style={{
                     background: active ? col + "22" : T.surface2,
                     border: `1px solid ${active ? col : T.border}`,

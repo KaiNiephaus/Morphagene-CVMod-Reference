@@ -1,4 +1,4 @@
-const MF = "'DM Mono','Fira Code',monospace"
+import { MF } from "../theme.js"
 
 // ── AudioToggle ──────────────────────────────────────────────────────────────
 // Button that enables / disables the Web Audio engine.

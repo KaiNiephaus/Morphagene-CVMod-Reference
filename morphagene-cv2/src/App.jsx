@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 // ── Theme ────────────────────────────────────────────────────────────────────
-import { DARK, LIGHT, DARK_COLORS, LIGHT_COLORS } from "./theme.js"
+import { DARK, LIGHT, DARK_COLORS, LIGHT_COLORS, MF } from "./theme.js"
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 import { INPUTS, INPUT_MAP } from "./data/inputs.js"
@@ -9,8 +9,9 @@ import { INPUTS, INPUT_MAP } from "./data/inputs.js"
 import { DEFAULT_MOD, computeModCV, buildTimeDomain } from "./utils/math.js"
 
 // ── Hooks ────────────────────────────────────────────────────────────────────
-import { useAnimationFrame } from "./hooks/useAnimationFrame.js"
-import { useAudioEngine } from "./hooks/useAudioEngine.js"
+import { useAnimationFrame }  from "./hooks/useAnimationFrame.js"
+import { useAudioEngine }     from "./hooks/useAudioEngine.js"
+import { useRollingBuffer }   from "./hooks/useRollingBuffer.js"
 
 // ── Components ───────────────────────────────────────────────────────────────
 import { Faceplate }         from "./components/Faceplate.jsx"
@@ -21,8 +22,6 @@ import { InteractionMatrix } from "./components/InteractionMatrix.jsx"
 import { AudioToggle }       from "./components/AudioToggle.jsx"
 import { Label, Note }       from "./components/atoms.jsx"
 import { TrackSlider }       from "./components/TrackSlider.jsx"
-
-const MF = "'DM Mono','Fira Code',monospace"
 
 // ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
@@ -46,7 +45,6 @@ export default function App() {
   // ── Playback ───────────────────────────────────────────────────────────────
   const [isPlaying, setIsPlaying] = useState(false)
   const { animTime, resetTime }   = useAnimationFrame(isPlaying)
-  const rollingBuffer = useRef({})
 
   const handleTogglePlay = useCallback(() => {
     if (isPlaying) { resetTime() }
@@ -88,43 +86,17 @@ export default function App() {
   const inp = INPUT_MAP[activeId]
   const col = getColor(activeId)
 
-  // Rolling buffer — 5 second window, updated every frame when playing
-  const WINDOW    = 5
+  const WINDOW     = 5
   const BUFFER_LEN = 200
+
+  const rollingBuffer = useRollingBuffer(isPlaying, modSources, animTime, WINDOW)
 
   const timeDomain = useMemo(() => {
     const src = modSources[activeId]
     if (src.type === "static") return []
-
-    if (!isPlaying) {
-      // Static preview before play is pressed
-      return buildTimeDomain(src, inp, WINDOW, BUFFER_LEN)
-    }
-
-    // Build rolling window: last 5 seconds of history
-    const buf = rollingBuffer.current[activeId] || []
-    return buf
-  }, [modSources, activeId, inp, isPlaying, animTime])
-
-  // Update rolling buffer every frame
-  useEffect(() => {
-    if (!isPlaying) {
-      rollingBuffer.current = {}
-      return
-    }
-    INPUTS.forEach(i => {
-      const src = modSources[i.id]
-      if (src.type === "static") return
-
-      const buf     = rollingBuffer.current[i.id] || []
-      const newCV   = +computeModCV(src, animTime, i).toFixed(4)
-      const newPoint = { t: +animTime.toFixed(3), cv: newCV }
-
-      // Keep only last WINDOW seconds
-      const trimmed = [...buf, newPoint].filter(p => p.t >= animTime - WINDOW)
-      rollingBuffer.current[i.id] = trimmed
-    })
-  }, [animTime, isPlaying, modSources])
+    if (!isPlaying) return buildTimeDomain(src, inp, WINDOW, BUFFER_LEN)
+    return rollingBuffer.current[activeId] || []
+  }, [modSources, activeId, inp, isPlaying, animTime, rollingBuffer])
 
   const setModSource = useCallback((id, v) => setModSources(p => ({ ...p, [id]: v })), [])
 
@@ -182,7 +154,7 @@ export default function App() {
       {view === "matrix" ? (
         <div style={{ padding: "20px 24px", maxWidth: 740, overflowY: "auto" }}>
           <InteractionMatrix
-            onSelectPair={a => { setActiveId(a); setView("charts") }}
+            onSelect={id => { setActiveId(id); setView("charts") }}
             getColor={getColor} T={T}
           />
         </div>
@@ -226,7 +198,8 @@ export default function App() {
               {leftTab === "firmware" && (
                 <FirmwarePanel
                   inp={inp} firmOpts={firmOpts}
-                  setFirmOpts={setFirmOpts} col={col} T={T}
+                  onOptionChange={(key, i) => setFirmOpts(p => ({ ...p, [key]: i }))}
+                  col={col} T={T}
                 />
               )}
               {leftTab === "splices" && activeId === "organize" && (
@@ -266,7 +239,6 @@ export default function App() {
               inp={inp}
               currentCV={animCV[activeId]}
               timeDomain={timeDomain}
-              animTime={animTime}
               isPlaying={isPlaying}
               firmOpts={firmOpts}
               T={T} col={col}

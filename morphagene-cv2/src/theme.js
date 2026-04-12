@@ -1,3 +1,15 @@
+// ── Shared constants ─────────────────────────────────────────────────────────
+
+export const MF = "'DM Mono','Fira Code',monospace"
+
+/** Appends a 2-digit hex alpha to a 6-digit hex color string. opacity 0–1. */
+export function withAlpha(hex, opacity) {
+  const a = Math.round(clamp01(opacity) * 255).toString(16).padStart(2, "0")
+  return hex + a
+}
+
+function clamp01(v) { return Math.max(0, Math.min(1, v)) }
+
 // ── Theme colour tokens ──────────────────────────────────────────────────────
 
 export const DARK = {

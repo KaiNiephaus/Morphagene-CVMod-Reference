@@ -1,4 +1,4 @@
-const MF = "'DM Mono','Fira Code',monospace"
+import { MF } from "../theme.js"
 
 // ── Morph stage definitions ──────────────────────────────────────────────────
 const MORPH_STAGES = [
