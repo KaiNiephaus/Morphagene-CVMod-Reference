@@ -1,7 +1,9 @@
+import type { CVInput, InputId } from "../types"
+
 // ── CV Input definitions ─────────────────────────────────────────────────────
 // Each entry describes one continuous CV input on the Morphagene.
 
-export const INPUTS = [
+export const INPUTS: CVInput[] = [
   {
     id: "varispeed",
     label: "VARI-SPEED",
@@ -69,4 +71,5 @@ export const INPUTS = [
 ]
 
 // Quick lookup by id
-export const INPUT_MAP = Object.fromEntries(INPUTS.map(i => [i.id, i]))
+export const INPUT_MAP: Record<InputId, CVInput> =
+  Object.fromEntries(INPUTS.map(i => [i.id, i])) as Record<InputId, CVInput>

@@ -2,7 +2,20 @@
 // Styled range input: visible filled track + glowing thumb dot.
 // The native <input> is invisible and overlaid for interaction.
 
-export function TrackSlider({ value, min, max, step, onChange, color, T, disabled }) {
+import type { Theme } from "../types"
+
+interface TrackSliderProps {
+  value:    number
+  min:      number
+  max:      number
+  step:     number
+  onChange: (v: number) => void
+  color:    string
+  T:        Theme
+  disabled?: boolean
+}
+
+export function TrackSlider({ value, min, max, step, onChange, color, T, disabled }: TrackSliderProps) {
   const pct = ((value - min) / (max - min)) * 100
 
   return (

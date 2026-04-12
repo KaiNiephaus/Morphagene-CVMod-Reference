@@ -1,9 +1,11 @@
 // ── Shared atom components ───────────────────────────────────────────────────
 // Small, stateless building blocks used across the app.
 
-import { MF } from "../theme.js"
+import type { ReactNode, CSSProperties } from "react"
+import type { Theme } from "../types"
+import { MF } from "../theme"
 
-export function Pill({ children, color }) {
+export function Pill({ children, color }: { children: ReactNode; color: string }) {
   return (
     <span style={{
       display: "inline-block", padding: "3px 10px", borderRadius: 2,
@@ -15,7 +17,7 @@ export function Pill({ children, color }) {
   )
 }
 
-export function Label({ children, T, style }) {
+export function Label({ children, T, style }: { children: ReactNode; T: Theme; style?: CSSProperties }) {
   return (
     <div style={{
       fontFamily: MF, fontSize: 11, color: T.label,
@@ -26,7 +28,9 @@ export function Label({ children, T, style }) {
   )
 }
 
-export function StatBlock({ items, T }) {
+interface StatItem { label: string; value: string; hi?: string }
+
+export function StatBlock({ items, T }: { items: StatItem[]; T: Theme }) {
   return (
     <div style={{
       display: "grid",
@@ -39,14 +43,14 @@ export function StatBlock({ items, T }) {
           padding: "8px 10px", borderRadius: 3,
         }}>
           <div style={{ fontFamily: MF, fontSize: 10, color: T.muted, marginBottom: 4 }}>{it.label}</div>
-          <div style={{ fontFamily: MF, fontSize: 13, color: it.hi || T.text, fontWeight: 500 }}>{it.value}</div>
+          <div style={{ fontFamily: MF, fontSize: 13, color: it.hi ?? T.text, fontWeight: 500 }}>{it.value}</div>
         </div>
       ))}
     </div>
   )
 }
 
-export function ChartTitle({ children, T, mt }) {
+export function ChartTitle({ children, T, mt }: { children: ReactNode; T: Theme; mt?: number }) {
   return (
     <div style={{
       fontFamily: MF, fontSize: 10, color: T.muted,
@@ -58,7 +62,7 @@ export function ChartTitle({ children, T, mt }) {
   )
 }
 
-export function Note({ children, T }) {
+export function Note({ children, T }: { children: ReactNode; T: Theme }) {
   return (
     <div style={{
       margin: "14px 0 0", padding: "10px 13px",
@@ -70,7 +74,7 @@ export function Note({ children, T }) {
   )
 }
 
-export function Mono({ children, T }) {
+export function Mono({ children, T }: { children: ReactNode; T: Theme }) {
   return (
     <code style={{
       background: T.dim, padding: "1px 5px", borderRadius: 2,
@@ -82,8 +86,8 @@ export function Mono({ children, T }) {
 }
 
 // Returns a Recharts-compatible tooltip component for a given theme
-export function makeTooltip(T) {
-  return ({ active, payload, label }) => {
+export function makeTooltip(T: Theme) {
+  return ({ active, payload, label }: { active?: boolean; payload?: { name: string; value: unknown; color?: string }[]; label?: string }) => {
     if (!active || !payload?.length) return null
     return (
       <div style={{
@@ -93,8 +97,8 @@ export function makeTooltip(T) {
       }}>
         <div style={{ color: T.muted, marginBottom: 4 }}>CV {label}V</div>
         {payload.map((p, i) => (
-          <div key={i} style={{ color: p.color || T.text }}>
-            {p.name}: {typeof p.value === "number" ? p.value.toFixed(3) : p.value}
+          <div key={i} style={{ color: p.color ?? T.text }}>
+            {p.name}: {typeof p.value === "number" ? p.value.toFixed(3) : String(p.value)}
           </div>
         ))}
       </div>

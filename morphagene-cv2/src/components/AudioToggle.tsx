@@ -1,10 +1,17 @@
-import { MF } from "../theme.js"
-
 // ── AudioToggle ──────────────────────────────────────────────────────────────
 // Button that enables / disables the Web Audio engine.
 // Must be triggered by a user gesture to satisfy browser autoplay policy.
 
-export function AudioToggle({ audioEnabled, onToggle, T }) {
+import type { Theme } from "../types"
+import { MF } from "../theme"
+
+interface AudioToggleProps {
+  audioEnabled: boolean
+  onToggle:     () => void
+  T:            Theme
+}
+
+export function AudioToggle({ audioEnabled, onToggle, T }: AudioToggleProps) {
   return (
     <button
       onClick={onToggle}

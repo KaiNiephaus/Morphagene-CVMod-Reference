@@ -3,200 +3,167 @@
 // Demonstrates the audible effect of each CV input using Web Audio API.
 // Each input has its own synthesis voice that morphs in response to the
 // current CV value, so users can HEAR what modulation does — not just see it.
-//
-// Architecture:
-//   AudioEngine class  →  singleton, created once on first user interaction
-//   useAudioEngine()   →  React hook that manages lifecycle and exposes controls
-//
-// Sound design per input:
-//   VARI-SPEED  → looped oscillator, pitch tracks the speed multiplier
-//   GENE SIZE   → granular-style filtered noise burst, window length tracks grain%
-//   SLIDE       → filtered drone, filter cutoff tracks position
-//   MORPH       → layered oscillators, active count tracks grain stage
-//   ORGANIZE    → pitched click/blip on splice change
-//   SOS         → crossfade between "live" noise and "buffer" tone
+
+// ── Voice types ──────────────────────────────────────────────────────────────
+interface OscVoice    { osc: OscillatorNode; gain: GainNode }
+interface FilterVoice { src: AudioBufferSourceNode; filter: BiquadFilterNode; gain: GainNode }
+interface SlideVoice  { osc: OscillatorNode; filter: BiquadFilterNode; gain: GainNode }
+interface MorphVoice  { oscs: OscillatorNode[]; gains: GainNode[]; stage: number }
+interface SOSVoice    { noise: AudioBufferSourceNode; liveGain: GainNode; osc: OscillatorNode; bufGain: GainNode }
+
+interface VoiceMap {
+  varispeed?: OscVoice
+  genesize?:  FilterVoice
+  slide?:     SlideVoice
+  morph?:     MorphVoice
+  sos?:       SOSVoice
+}
 
 // ── Base sample frequency for pitch reference (A3 = 220Hz) ──────────────────
 const BASE_FREQ = 220
 
 class AudioEngine {
-  constructor() {
-    this.ctx        = null
-    this.masterGain = null
-    this.voices     = {}   // keyed by input id
-    this._ready     = false
-  }
+  ctx:        AudioContext | null = null
+  masterGain: GainNode    | null = null
+  private voices: VoiceMap = {}
+  private _ready = false
 
-  // Call once after a user gesture (click / tap)
-  async init() {
+  async init(): Promise<void> {
     if (this._ready) return
-    this.ctx        = new (window.AudioContext || window.webkitAudioContext)()
+    this.ctx        = new AudioContext()
     this.masterGain = this.ctx.createGain()
     this.masterGain.gain.value = 0.35
     this.masterGain.connect(this.ctx.destination)
     this._ready = true
   }
 
-  get ready() { return this._ready }
+  get ready(): boolean { return this._ready }
 
-  resume() {
-    if (this.ctx?.state === "suspended") this.ctx.resume()
+  resume(): void {
+    if (this.ctx?.state === "suspended") void this.ctx.resume()
   }
 
-  suspend() {
-    if (this.ctx?.state === "running") this.ctx.suspend()
-  }
-
-  setMasterVolume(v) {
-    if (!this._ready) return
-    this.masterGain.gain.setTargetAtTime(v, this.ctx.currentTime, 0.05)
+  suspend(): void {
+    if (this.ctx?.state === "running") void this.ctx.suspend()
   }
 
   // ── Stop all voices ────────────────────────────────────────────────────────
-  stopAll() {
-    Object.values(this.voices).forEach(v => v?.stop?.())
+  stopAll(): void {
+    const { varispeed, genesize, slide, morph, sos } = this.voices
+    if (varispeed) { try { varispeed.osc.stop()   } catch (_) {} }
+    if (genesize)  { try { genesize.src.stop()    } catch (_) {} }
+    if (slide)     { try { slide.osc.stop()        } catch (_) {} }
+    if (morph)     morph.oscs.forEach(o => { try { o.stop() } catch (_) {} })
+    if (sos)       { try { sos.noise.stop(); sos.osc.stop() } catch (_) {} }
     this.voices = {}
   }
 
   // ── VARI-SPEED ─────────────────────────────────────────────────────────────
-  // Looping sawtooth whose pitch tracks the speed multiplier.
-  // At CV=0 (stopped) → inaudible. Reverse → pitch drops, detune shifts.
-  setVarispeed(cv, speedMultiplier) {
-    if (!this._ready) return
-    const key = "varispeed"
-    if (!this.voices[key]) {
+  setVarispeed(cv: number, speedMultiplier: number): void {
+    if (!this._ready || !this.ctx || !this.masterGain) return
+    if (!this.voices.varispeed) {
       const osc  = this.ctx.createOscillator()
       const gain = this.ctx.createGain()
       osc.type = "sawtooth"
       osc.connect(gain)
       gain.connect(this.masterGain)
       osc.start()
-      this.voices[key] = { osc, gain }
+      this.voices.varispeed = { osc, gain }
     }
-    const { osc, gain } = this.voices[key]
+    const { osc, gain } = this.voices.varispeed
     const freq = Math.abs(speedMultiplier) * BASE_FREQ
     const vol  = Math.abs(speedMultiplier) < 0.05 ? 0 : 0.18
     osc.frequency.setTargetAtTime(Math.max(20, freq), this.ctx.currentTime, 0.08)
-    // Detune slightly negative when reversed for audible cue
     osc.detune.setTargetAtTime(cv < 0 ? -30 : 0, this.ctx.currentTime, 0.1)
     gain.gain.setTargetAtTime(vol, this.ctx.currentTime, 0.08)
   }
 
   // ── GENE SIZE ──────────────────────────────────────────────────────────────
-  // Filtered noise whose filter Q and frequency track grain window size.
-  // Large grains → warm, open noise. Small grains → narrow bandpass clicks.
-  setGeneSize(cv, grainPct) {
-    if (!this._ready) return
-    const key = "genesize"
-    if (!this.voices[key]) {
+  setGeneSize(_cv: number, grainPct: number): void {
+    if (!this._ready || !this.ctx || !this.masterGain) return
+    if (!this.voices.genesize) {
       const bufSize = this.ctx.sampleRate * 2
       const buffer  = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate)
       const data    = buffer.getChannelData(0)
       for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1
-
       const src    = this.ctx.createBufferSource()
       src.buffer   = buffer
       src.loop     = true
-
       const filter = this.ctx.createBiquadFilter()
       filter.type  = "bandpass"
-
       const gain   = this.ctx.createGain()
       src.connect(filter)
       filter.connect(gain)
       gain.connect(this.masterGain)
       src.start()
-      this.voices[key] = { src, filter, gain }
+      this.voices.genesize = { src, filter, gain }
     }
-    const { filter, gain } = this.voices[key]
-    // grainPct 100→0: large grains = low cutoff wide, small = high narrow
+    const { filter, gain } = this.voices.genesize
     const freq = 200 + (1 - grainPct / 100) * 3000
-    const q    = 1 + (1 - grainPct / 100) * 18
+    const q    = 1   + (1 - grainPct / 100) * 18
     filter.frequency.setTargetAtTime(freq, this.ctx.currentTime, 0.1)
     filter.Q.setTargetAtTime(q, this.ctx.currentTime, 0.1)
     gain.gain.setTargetAtTime(0.22, this.ctx.currentTime, 0.05)
   }
 
   // ── SLIDE ──────────────────────────────────────────────────────────────────
-  // Drone tone with filter sweep tracking playhead position.
-  // Position 0% → dark/low. Position 100% → bright/high.
-  setSlide(cv, posPct) {
-    if (!this._ready) return
-    const key = "slide"
-    if (!this.voices[key]) {
+  setSlide(_cv: number, posPct: number): void {
+    if (!this._ready || !this.ctx || !this.masterGain) return
+    if (!this.voices.slide) {
       const osc    = this.ctx.createOscillator()
       const filter = this.ctx.createBiquadFilter()
       const gain   = this.ctx.createGain()
-      osc.type     = "triangle"
-      filter.type  = "lowpass"
+      osc.type            = "triangle"
+      filter.type         = "lowpass"
+      osc.frequency.value = BASE_FREQ
       osc.connect(filter)
       filter.connect(gain)
       gain.connect(this.masterGain)
-      osc.frequency.value = BASE_FREQ
       osc.start()
-      this.voices[key] = { osc, filter, gain }
+      this.voices.slide = { osc, filter, gain }
     }
-    const { filter, gain } = this.voices[key]
-    const cutoff = 300 + (posPct / 100) * 4000
-    filter.frequency.setTargetAtTime(cutoff, this.ctx.currentTime, 0.12)
+    const { filter, gain } = this.voices.slide
+    filter.frequency.setTargetAtTime(300 + (posPct / 100) * 4000, this.ctx.currentTime, 0.12)
     gain.gain.setTargetAtTime(0.15, this.ctx.currentTime, 0.05)
   }
 
   // ── MORPH ──────────────────────────────────────────────────────────────────
-  // Layered oscillators — active count matches grain stage (0–4).
-  // Stage 0: silence. Stage 4: four detuned oscillators + random pitch scatter.
-  setMorph(cv, stage) {
-    if (!this._ready) return
-    const key = "morph"
-
-    // Rebuild voices when stage changes layer count
-    if (!this.voices[key] || this.voices[key].stage !== stage) {
-      // Tear down old
-      if (this.voices[key]) {
-        this.voices[key].oscs.forEach(o => { try { o.stop() } catch (_) {} })
-      }
-
+  setMorph(_cv: number, stage: number): void {
+    if (!this._ready || !this.ctx || !this.masterGain) return
+    if (!this.voices.morph || this.voices.morph.stage !== stage) {
+      if (this.voices.morph)
+        this.voices.morph.oscs.forEach(o => { try { o.stop() } catch (_) {} })
       if (stage === 0) {
-        this.voices[key] = { oscs: [], gains: [], stage }
+        this.voices.morph = { oscs: [], gains: [], stage }
         return
       }
-
-      // Pitch intervals per stage (semitones above base)
-      const intervals = [
-        [],
-        [0],
-        [0, 7],
-        [0, 7, 12],
-        [0, 7, 12, 19],
-      ][stage]
-
-      const oscs  = []
-      const gains = []
+      const intervals = ([[], [0], [0, 7], [0, 7, 12], [0, 7, 12, 19]] as number[][])[stage]
+      const oscs:  OscillatorNode[] = []
+      const gains: GainNode[]       = []
       intervals.forEach(semitones => {
-        const osc  = this.ctx.createOscillator()
-        const gain = this.ctx.createGain()
-        osc.type   = "sine"
+        const osc  = this.ctx!.createOscillator()
+        const gain = this.ctx!.createGain()
+        osc.type            = "sine"
         osc.frequency.value = BASE_FREQ * Math.pow(2, semitones / 12)
-        osc.detune.value    = (Math.random() - 0.5) * 8   // subtle natural detune
+        osc.detune.value    = (Math.random() - 0.5) * 8
         gain.gain.value     = 0.12 / stage
         osc.connect(gain)
-        gain.connect(this.masterGain)
+        gain.connect(this.masterGain!)
         osc.start()
         oscs.push(osc)
         gains.push(gain)
       })
-      this.voices[key] = { oscs, gains, stage }
+      this.voices.morph = { oscs, gains, stage }
     }
   }
 
   // ── ORGANIZE ───────────────────────────────────────────────────────────────
-  // Pitched click when splice selection changes — like a sequencer step trigger.
-  triggerOrganize(spliceIndex) {
-    if (!this._ready) return
+  triggerOrganize(spliceIndex: number): void {
+    if (!this._ready || !this.ctx || !this.masterGain) return
     const freq = 220 * Math.pow(2, (spliceIndex % 12) / 12)
     const osc  = this.ctx.createOscillator()
     const env  = this.ctx.createGain()
-    osc.type   = "sine"
+    osc.type            = "sine"
     osc.frequency.value = freq
     env.gain.setValueAtTime(0.25, this.ctx.currentTime)
     env.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12)
@@ -207,12 +174,9 @@ class AudioEngine {
   }
 
   // ── SOS ────────────────────────────────────────────────────────────────────
-  // Crossfade between filtered noise ("live input") and sine tone ("buffer loop").
-  setSOS(cv, liveAmt, bufferAmt) {
-    if (!this._ready) return
-    const key = "sos"
-    if (!this.voices[key]) {
-      // Live = filtered noise
+  setSOS(_cv: number, liveAmt: number, bufferAmt: number): void {
+    if (!this._ready || !this.ctx || !this.masterGain) return
+    if (!this.voices.sos) {
       const bufSize  = this.ctx.sampleRate * 2
       const buffer   = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate)
       const data     = buffer.getChannelData(0)
@@ -228,50 +192,48 @@ class AudioEngine {
       noiseF.connect(liveGain)
       liveGain.connect(this.masterGain)
       noise.start()
-
-      // Buffer = sine tone (loop metaphor)
       const osc     = this.ctx.createOscillator()
       const bufGain = this.ctx.createGain()
-      osc.type      = "sine"
+      osc.type            = "sine"
       osc.frequency.value = BASE_FREQ * 1.5
       osc.connect(bufGain)
       bufGain.connect(this.masterGain)
       osc.start()
-
-      this.voices[key] = { noise, liveGain, osc, bufGain }
+      this.voices.sos = { noise, liveGain, osc, bufGain }
     }
-    const { liveGain, bufGain } = this.voices[key]
-    liveGain.gain.setTargetAtTime(liveAmt * 0.2, this.ctx.currentTime, 0.08)
+    const { liveGain, bufGain } = this.voices.sos
+    liveGain.gain.setTargetAtTime(liveAmt  * 0.2, this.ctx.currentTime, 0.08)
     bufGain.gain.setTargetAtTime(bufferAmt * 0.2, this.ctx.currentTime, 0.08)
   }
 
   // ── Silence all voices except the active one ──────────────────────────────
-  setActiveVoice(id) {
-    if (!this._ready) return
+  setActiveVoice(id: string): void {
+    if (!this._ready || !this.ctx) return
     const t = this.ctx.currentTime
-    Object.entries(this.voices).forEach(([key, voice]) => {
-      if (!voice || key === id) return
-      if (key === "morph") {
-        voice.gains?.forEach(g => g.gain.setTargetAtTime(0, t, 0.05))
-      } else if (key === "sos") {
-        voice.liveGain?.gain.setTargetAtTime(0, t, 0.05)
-        voice.bufGain?.gain.setTargetAtTime(0, t, 0.05)
-      } else {
-        voice.gain?.gain.setTargetAtTime(0, t, 0.05)
-      }
-    })
+    if (this.voices.varispeed && id !== "varispeed")
+      this.voices.varispeed.gain.gain.setTargetAtTime(0, t, 0.05)
+    if (this.voices.genesize && id !== "genesize")
+      this.voices.genesize.gain.gain.setTargetAtTime(0, t, 0.05)
+    if (this.voices.slide && id !== "slide")
+      this.voices.slide.gain.gain.setTargetAtTime(0, t, 0.05)
+    if (this.voices.morph && id !== "morph")
+      this.voices.morph.gains.forEach(g => g.gain.setTargetAtTime(0, t, 0.05))
+    if (this.voices.sos && id !== "sos") {
+      this.voices.sos.liveGain.gain.setTargetAtTime(0, t, 0.05)
+      this.voices.sos.bufGain.gain.setTargetAtTime(0, t, 0.05)
+    }
   }
 
-  destroy() {
+  destroy(): void {
     this.stopAll()
-    this.ctx?.close()
+    void this.ctx?.close()
     this._ready = false
   }
 }
 
 // Singleton instance
-let _engine = null
-export function getAudioEngine() {
+let _engine: AudioEngine | null = null
+export function getAudioEngine(): AudioEngine {
   if (!_engine) _engine = new AudioEngine()
   return _engine
 }

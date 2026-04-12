@@ -1,9 +1,22 @@
-import { TrackSlider } from "./TrackSlider.jsx"
-import { Label } from "./atoms.jsx"
-import { MF } from "../theme.js"
+import { TrackSlider } from "./TrackSlider"
+import { Label } from "./atoms"
+import type { CVInput, ModSource, ModType, LFOShape, Theme } from "../types"
+import { MF } from "../theme"
 
 // ── PSlider ── small labelled slider used inside ModSourcePanel ──────────────
-function PSlider({ label, value, min, max, step, unit, col, onChange, T }) {
+interface PSliderProps {
+  label:    string
+  value:    number
+  min:      number
+  max:      number
+  step:     number
+  unit:     string
+  col:      string
+  onChange: (v: number) => void
+  T:        Theme
+}
+
+function PSlider({ label, value, min, max, step, unit, col, onChange, T }: PSliderProps) {
   return (
     <div style={{ marginBottom: 13 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
@@ -21,10 +34,20 @@ function PSlider({ label, value, min, max, step, unit, col, onChange, T }) {
 // Left-panel section: choose modulation type (Static / LFO / ENV / S&H)
 // and configure its parameters.
 
-export function ModSourcePanel({ src, onChange, inp, col, isPlaying, onTogglePlay, T }) {
-  const set = (k, v) => onChange({ ...src, [k]: v })
+interface ModSourcePanelProps {
+  src:          ModSource
+  onChange:     (src: ModSource) => void
+  inp:          CVInput
+  col:          string
+  isPlaying:    boolean
+  onTogglePlay: () => void
+  T:            Theme
+}
 
-  const typeBtn = id => ({
+export function ModSourcePanel({ src, onChange, inp, col, isPlaying, onTogglePlay, T }: ModSourcePanelProps) {
+  const set = <K extends keyof ModSource>(k: K, v: ModSource[K]) => onChange({ ...src, [k]: v })
+
+  const typeBtn = (id: ModType) => ({
     background: src.type === id ? col + "22" : T.surface2,
     border: `1px solid ${src.type === id ? col : T.border}`,
     color: src.type === id ? col : T.muted,
@@ -32,7 +55,7 @@ export function ModSourcePanel({ src, onChange, inp, col, isPlaying, onTogglePla
     fontFamily: MF, fontSize: 11, letterSpacing: "0.05em",
   })
 
-  const shapeBtn = id => ({
+  const shapeBtn = (id: LFOShape) => ({
     background: src.shape === id ? col + "22" : T.surface2,
     border: `1px solid ${src.shape === id ? col : T.border}`,
     color: src.shape === id ? col : T.muted,
@@ -40,11 +63,14 @@ export function ModSourcePanel({ src, onChange, inp, col, isPlaying, onTogglePla
     fontFamily: MF, fontSize: 11,
   })
 
+  const MOD_TYPES: [ModType, string][]   = [["static", "STATIC"], ["lfo", "LFO"], ["envelope", "ENV"], ["sh", "S&H"]]
+  const LFO_SHAPES: LFOShape[]           = ["sine", "tri", "saw", "ramp"]
+
   return (
     <div>
       <Label T={T}>Modulation Source</Label>
       <div style={{ display: "flex", gap: 5, marginBottom: 14, flexWrap: "wrap" }}>
-        {[["static", "STATIC"], ["lfo", "LFO"], ["envelope", "ENV"], ["sh", "S&H"]].map(([t, lbl]) => (
+        {MOD_TYPES.map(([t, lbl]) => (
           <button key={t} style={typeBtn(t)} onClick={() => set("type", t)}>{lbl}</button>
         ))}
       </div>
@@ -69,11 +95,12 @@ export function ModSourcePanel({ src, onChange, inp, col, isPlaying, onTogglePla
       {src.type === "lfo" && (<>
         <Label T={T}>Waveform</Label>
         <div style={{ display: "flex", gap: 5, marginBottom: 14, flexWrap: "wrap" }}>
-          {["sine", "tri", "saw", "ramp"].map(s => (
+          {LFO_SHAPES.map(s => (
             <button key={s} style={shapeBtn(s)} onClick={() => set("shape", s)}>{s}</button>
           ))}
         </div>
-        <PSlider label="RATE"      value={src.rate}      min={0.05} max={4} step={0.01} unit="Hz" col={col} onChange={v => set("rate", v)}      T={T} />
+        <PSlider label="RATE" value={src.rate} min={0.05} max={4} step={0.01} unit="Hz"
+          col={col} onChange={v => set("rate", v)} T={T} />
         <PSlider label="AMPLITUDE"
           value={+(src.amplitude * (inp.max - inp.min) / 2).toFixed(2)}
           min={0} max={(inp.max - inp.min) / 2} step={0.05} unit="V"
@@ -82,8 +109,10 @@ export function ModSourcePanel({ src, onChange, inp, col, isPlaying, onTogglePla
 
       {/* ── ENVELOPE ── */}
       {src.type === "envelope" && (<>
-        <PSlider label="ATTACK"    value={src.attackTime} min={0.01} max={20}  step={0.01} unit="s"  col={col} onChange={v => set("attackTime", v)} T={T} />
-        <PSlider label="DECAY"     value={src.decayTime}  min={0.01} max={60}  step={0.05} unit="s"  col={col} onChange={v => set("decayTime", v)}  T={T} />
+        <PSlider label="ATTACK" value={src.attackTime} min={0.01} max={20}  step={0.01} unit="s"
+          col={col} onChange={v => set("attackTime", v)} T={T} />
+        <PSlider label="DECAY"  value={src.decayTime}  min={0.01} max={60}  step={0.05} unit="s"
+          col={col} onChange={v => set("decayTime", v)}  T={T} />
         <PSlider label="PEAK CV"
           value={+(inp.min + src.amplitude * (inp.max - inp.min)).toFixed(2)}
           min={inp.min} max={inp.max} step={0.05} unit="V"
@@ -92,8 +121,12 @@ export function ModSourcePanel({ src, onChange, inp, col, isPlaying, onTogglePla
 
       {/* ── S&H ── */}
       {src.type === "sh" && (<>
-        <PSlider label="CLOCK RATE" value={src.rate}                          min={0.1} max={8} step={0.05} unit="Hz" col={col} onChange={v=>set("rate",v)}                               T={T} />
-        <PSlider label="RANGE"      value={+(src.amplitude*(inp.max-inp.min)+inp.min).toFixed(2)} min={inp.min} max={inp.max} step={0.01} unit="V"  col={col} onChange={v=>set("amplitude",(v-inp.min)/Math.max(0.01,inp.max-inp.min))} T={T} />
+        <PSlider label="CLOCK RATE" value={src.rate} min={0.1} max={8} step={0.05} unit="Hz"
+          col={col} onChange={v => set("rate", v)} T={T} />
+        <PSlider label="RANGE"
+          value={+(src.amplitude * (inp.max - inp.min) + inp.min).toFixed(2)}
+          min={inp.min} max={inp.max} step={0.01} unit="V"
+          col={col} onChange={v => set("amplitude", (v - inp.min) / Math.max(0.01, inp.max - inp.min))} T={T} />
       </>)}
 
       {/* ── Play button ── */}

@@ -2,7 +2,13 @@
 // Keys are sorted pairs of input IDs joined by '-'.
 // level: 1 = subtle, 2 = productive, 3 = high synergy
 
-export const MATRIX_CELLS = {
+export interface MatrixCell {
+  level: 1 | 2 | 3
+  title: string
+  desc:  string
+}
+
+export const MATRIX_CELLS: Record<string, MatrixCell> = {
   "varispeed-genesize": {
     level: 3, title: "Time Stretch",
     desc: "Hold GS constant while sweeping VS: grain pitch changes but duration stays fixed, decoupling pitch from time. The foundational Morphagene time-stretch patch.",

@@ -1,27 +1,34 @@
 import { useState } from "react"
-import { INPUTS, INPUT_MAP } from "../data/inputs.js"
-import { MATRIX_CELLS } from "../data/matrixCells.js"
-import { MF } from "../theme.js"
+import { INPUTS, INPUT_MAP } from "../data/inputs"
+import { MATRIX_CELLS } from "../data/matrixCells"
+import type { InputId, Theme } from "../types"
+import { MF } from "../theme"
 
-const LEVEL_STYLE = [
+interface LevelStyle { bg: string; bd: string; col: string }
+
+const LEVEL_STYLE: (LevelStyle | null)[] = [
   null,
   { bg: "#1a1a36", bd: "#33335a", col: "#8888cc" },
   { bg: "#1a2e1a", bd: "#2a4a2a", col: "#88bb88" },
   { bg: "#2a1a36", bd: "#4a2a5a", col: "#cc88ff" },
 ]
 
-function getCell(a, b) {
-  const key1 = `${a}-${b}`
-  const key2 = `${b}-${a}`
-  return MATRIX_CELLS[key1] || MATRIX_CELLS[key2] || null
+function getCell(a: string, b: string) {
+  return MATRIX_CELLS[`${a}-${b}`] ?? MATRIX_CELLS[`${b}-${a}`] ?? null
 }
 
 // ── InteractionMatrix ────────────────────────────────────────────────────────
 // 6×6 grid showing notable cross-input patch combinations.
 // Hover to read description, click to jump to that input.
 
-export function InteractionMatrix({ onSelect, getColor, T }) {
-  const [hovered, setHovered] = useState(null)
+interface InteractionMatrixProps {
+  onSelect:  (id: InputId) => void
+  getColor:  (id: InputId) => string
+  T:         Theme
+}
+
+export function InteractionMatrix({ onSelect, getColor, T }: InteractionMatrixProps) {
+  const [hovered, setHovered] = useState<string | null>(null)
 
   return (
     <div style={{ paddingBottom: 24 }}>
@@ -31,17 +38,17 @@ export function InteractionMatrix({ onSelect, getColor, T }) {
 
       {/* Legend */}
       <div style={{ display: "flex", gap: 14, marginBottom: 16, flexWrap: "wrap" }}>
-        {[1, 2, 3].map(l => (
-          <div key={l} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <div style={{
-              width: 16, height: 16, borderRadius: 2,
-              background: LEVEL_STYLE[l].bg, border: `1px solid ${LEVEL_STYLE[l].bd}`,
-            }} />
-            <span style={{ fontFamily: MF, fontSize: 11, color: T.muted }}>
-              {l === 1 ? "Subtle" : l === 2 ? "Productive" : "High Synergy"}
-            </span>
-          </div>
-        ))}
+        {([1, 2, 3] as const).map(l => {
+          const ls = LEVEL_STYLE[l]!
+          return (
+            <div key={l} style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <div style={{ width: 16, height: 16, borderRadius: 2, background: ls.bg, border: `1px solid ${ls.bd}` }} />
+              <span style={{ fontFamily: MF, fontSize: 11, color: T.muted }}>
+                {l === 1 ? "Subtle" : l === 2 ? "Productive" : "High Synergy"}
+              </span>
+            </div>
+          )
+        })}
       </div>
 
       {/* Grid */}
@@ -93,7 +100,7 @@ export function InteractionMatrix({ onSelect, getColor, T }) {
                     </td>
                   )
 
-                  const ls = LEVEL_STYLE[cell.level]
+                  const ls = LEVEL_STYLE[cell.level]!
                   return (
                     <td key={col2.id} style={{ padding: 3 }}>
                       <div
@@ -129,14 +136,14 @@ export function InteractionMatrix({ onSelect, getColor, T }) {
         {hovered ? (() => {
           const mk   = [hovered, hovered.split("-").reverse().join("-")].find(k => MATRIX_CELLS[k])
           const cell = mk ? MATRIX_CELLS[mk] : null
-          if (!cell) return <span style={{ fontFamily: MF, fontSize: 12, color: T.muted }}>—</span>
-          const [a, b] = mk.split("-")
+          if (!cell || !mk) return <span style={{ fontFamily: MF, fontSize: 12, color: T.muted }}>—</span>
+          const [a, b] = mk.split("-") as [InputId, InputId]
           return (<>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
               <span style={{ fontFamily: MF, fontSize: 12, color: getColor(a), fontWeight: 500 }}>{INPUT_MAP[a]?.label}</span>
               <span style={{ fontFamily: MF, fontSize: 11, color: T.muted }}>×</span>
               <span style={{ fontFamily: MF, fontSize: 12, color: getColor(b), fontWeight: 500 }}>{INPUT_MAP[b]?.label}</span>
-              <span style={{ marginLeft: "auto", fontFamily: MF, fontSize: 11, color: LEVEL_STYLE[cell.level].col }}>{cell.title}</span>
+              <span style={{ marginLeft: "auto", fontFamily: MF, fontSize: 11, color: LEVEL_STYLE[cell.level]!.col }}>{cell.title}</span>
             </div>
             <div style={{ fontFamily: MF, fontSize: 12, color: T.muted, lineHeight: 1.7 }}>{cell.desc}</div>
           </>)

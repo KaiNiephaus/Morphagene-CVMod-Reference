@@ -1,10 +1,13 @@
-import { INPUT_MAP } from "../data/inputs.js"
+import { INPUT_MAP } from "../data/inputs"
+import type { InputId, Theme } from "../types"
 
 // ── Faceplate ────────────────────────────────────────────────────────────────
 // SVG illustration of the Morphagene panel.
 // Clicking a row selects that input. Live CV bars update in real time.
 
-const ROWS = [
+interface FaceplateRow { id: InputId; ky: number; jy: number }
+
+const ROWS: FaceplateRow[] = [
   { id: "varispeed", ky: 55,  jy: 74  },
   { id: "genesize",  ky: 106, jy: 125 },
   { id: "slide",     ky: 157, jy: 176 },
@@ -13,7 +16,15 @@ const ROWS = [
   { id: "sos",       ky: 310, jy: 329 },
 ]
 
-export function Faceplate({ activeId, onSelect, animCV, getColor, T }) {
+interface FaceplateProps {
+  activeId: InputId
+  onSelect: (id: InputId) => void
+  animCV:   Record<InputId, number>
+  getColor: (id: InputId) => string
+  T:        Theme
+}
+
+export function Faceplate({ activeId, onSelect, animCV, getColor, T }: FaceplateProps) {
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: "8px 10px 10px" }}>
       <svg width={180} height={395} style={{ overflow: "visible" }}>

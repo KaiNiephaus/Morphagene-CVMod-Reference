@@ -1,53 +1,45 @@
 import { useState, useMemo, useCallback, useEffect } from "react"
-// ── Theme ────────────────────────────────────────────────────────────────────
-import { DARK, LIGHT, DARK_COLORS, LIGHT_COLORS, MF } from "./theme.js"
-
-// ── Data ─────────────────────────────────────────────────────────────────────
-import { INPUTS, INPUT_MAP } from "./data/inputs.js"
-
-// ── Utils ────────────────────────────────────────────────────────────────────
-import { DEFAULT_MOD, computeModCV, buildTimeDomain } from "./utils/math.js"
-
-// ── Hooks ────────────────────────────────────────────────────────────────────
-import { useAnimationFrame }  from "./hooks/useAnimationFrame.js"
-import { useAudioEngine }     from "./hooks/useAudioEngine.js"
-import { useRollingBuffer }   from "./hooks/useRollingBuffer.js"
-
-// ── Components ───────────────────────────────────────────────────────────────
-import { Faceplate }         from "./components/Faceplate.jsx"
-import { ModSourcePanel }    from "./components/ModSourcePanel.jsx"
-import { FirmwarePanel }     from "./components/FirmwarePanel.jsx"
-import { ChartPanel }        from "./components/ChartPanel.jsx"
-import { InteractionMatrix } from "./components/InteractionMatrix.jsx"
-import { AudioToggle }       from "./components/AudioToggle.jsx"
-import { Label, Note }       from "./components/atoms.jsx"
-import { TrackSlider }       from "./components/TrackSlider.jsx"
+import { DARK, LIGHT, DARK_COLORS, LIGHT_COLORS, MF } from "./theme"
+import type { InputId, ModSource, ModSourceMap, FirmOpts } from "./types"
+import { INPUTS, INPUT_MAP } from "./data/inputs"
+import { DEFAULT_MOD, computeModCV, buildTimeDomain } from "./utils/math"
+import { useAnimationFrame } from "./hooks/useAnimationFrame"
+import { useAudioEngine }    from "./hooks/useAudioEngine"
+import { useRollingBuffer }  from "./hooks/useRollingBuffer"
+import { Faceplate }         from "./components/Faceplate"
+import { ModSourcePanel }    from "./components/ModSourcePanel"
+import { FirmwarePanel }     from "./components/FirmwarePanel"
+import { ChartPanel }        from "./components/ChartPanel"
+import { InteractionMatrix } from "./components/InteractionMatrix"
+import { AudioToggle }       from "./components/AudioToggle"
+import { Label, Note }       from "./components/atoms"
+import { TrackSlider }       from "./components/TrackSlider"
 
 // ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
   // ── Theme ──────────────────────────────────────────────────────────────────
   const [isDark, setIsDark] = useState(true)
   const T        = isDark ? DARK : LIGHT
-  const getColor = useCallback(id => (isDark ? DARK_COLORS : LIGHT_COLORS)[id], [isDark])
+  const getColor = useCallback((id: InputId) => (isDark ? DARK_COLORS : LIGHT_COLORS)[id], [isDark])
 
   // ── Navigation ─────────────────────────────────────────────────────────────
-  const [activeId, setActiveId] = useState("varispeed")
-  const [view, setView]         = useState("charts")   // "charts" | "matrix"
-  const [leftTab, setLeftTab]   = useState("mod")      // "mod" | "firmware" | "splices"
+  const [activeId, setActiveId] = useState<InputId>("varispeed")
+  const [view, setView]         = useState<"charts" | "matrix">("charts")
+  const [leftTab, setLeftTab]   = useState<"mod" | "firmware" | "splices">("mod")
 
   // ── Per-input state ────────────────────────────────────────────────────────
   const [spliceCount, setSpliceCount] = useState(8)
-  const [modSources, setModSources]   = useState(
-    Object.fromEntries(INPUTS.map(i => [i.id, { ...DEFAULT_MOD, staticVal: i.defaultCv }]))
+  const [modSources, setModSources]   = useState<ModSourceMap>(
+    Object.fromEntries(INPUTS.map(i => [i.id, { ...DEFAULT_MOD, staticVal: i.defaultCv }])) as ModSourceMap
   )
-  const [firmOpts, setFirmOpts] = useState({ vsop: 0, gnsm: 0, ckop: 0, omod: 0, inop: 0 })
+  const [firmOpts, setFirmOpts] = useState<FirmOpts>({ vsop: 0, gnsm: 0, ckop: 0, omod: 0, inop: 0 })
 
   // ── Playback ───────────────────────────────────────────────────────────────
   const [isPlaying, setIsPlaying] = useState(false)
   const { animTime, resetTime }   = useAnimationFrame(isPlaying)
 
   const handleTogglePlay = useCallback(() => {
-    if (isPlaying) { resetTime() }
+    if (isPlaying) resetTime()
     setIsPlaying(p => !p)
   }, [isPlaying, resetTime])
 
@@ -56,7 +48,7 @@ export default function App() {
 
   // ── Computed CV values (live during animation, static otherwise) ───────────
   const animCV = useMemo(() => {
-    const out = {}
+    const out = {} as Record<InputId, number>
     INPUTS.forEach(i => {
       const src = modSources[i.id]
       out[i.id] = src.type === "static"
@@ -95,13 +87,16 @@ export default function App() {
     const src = modSources[activeId]
     if (src.type === "static") return []
     if (!isPlaying) return buildTimeDomain(src, inp, WINDOW, BUFFER_LEN)
-    return rollingBuffer.current[activeId] || []
+    return rollingBuffer.current[activeId] ?? []
   }, [modSources, activeId, inp, isPlaying, animTime, rollingBuffer])
 
-  const setModSource = useCallback((id, v) => setModSources(p => ({ ...p, [id]: v })), [])
+  const setModSource = useCallback(
+    (id: InputId, v: ModSource) => setModSources(p => ({ ...p, [id]: v })),
+    []
+  )
 
   // ── Button style helpers ───────────────────────────────────────────────────
-  const navBtn = id => ({
+  const navBtn = (id: string) => ({
     background: view === id ? T.surface2 : "none",
     border: `1px solid ${view === id ? T.border2 : T.border}`,
     color: view === id ? T.text : T.muted,
@@ -109,7 +104,7 @@ export default function App() {
     fontFamily: MF, fontSize: 11, letterSpacing: "0.08em",
   })
 
-  const leftTabBtn = id => ({
+  const leftTabBtn = (id: string) => ({
     background: "none", border: "none",
     borderBottom: `2px solid ${leftTab === id ? col : "transparent"}`,
     color: leftTab === id ? col : T.muted,

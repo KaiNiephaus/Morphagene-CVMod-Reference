@@ -1,22 +1,28 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { getAudioEngine } from "../audio/engine.js"
-import { getVSMetrics, getMorphStage, clamp } from "../utils/math.js"
+import { getAudioEngine } from "../audio/engine"
+import { getVSMetrics, getMorphStage, clamp } from "../utils/math"
+import type { InputId, FirmOpts } from "../types"
+
+interface AudioEngineResult {
+  audioEnabled: boolean
+  toggleAudio:  () => Promise<void>
+  updateAudio:  (animCV: Record<InputId, number>, firmOpts: FirmOpts & { spliceCount: number }, activeId: InputId) => void
+  pauseAudio:   () => void
+}
 
 /**
  * useAudioEngine
  *
  * Manages the audio engine lifecycle and exposes:
  *   - audioEnabled  : boolean — has the user enabled audio?
- *   - toggleAudio() : function — enable / disable audio
- *   - updateAudio() : function — call with current CV values to update all voices
- *
- * Audio is opt-in (requires a user gesture to start Web Audio context).
- * Call toggleAudio() from a button click.
+ *   - toggleAudio() : enable / disable audio (must be called from a user gesture)
+ *   - updateAudio() : call each frame with current CV values to update the active voice
+ *   - pauseAudio()  : silence all voices without disabling audio globally
  */
-export function useAudioEngine() {
+export function useAudioEngine(): AudioEngineResult {
   const [audioEnabled, setAudioEnabled] = useState(false)
-  const engine     = getAudioEngine()
-  const prevOrg    = useRef(-1)   // track last organize splice for trigger
+  const engine  = getAudioEngine()
+  const prevOrg = useRef(-1)
 
   const toggleAudio = useCallback(async () => {
     if (!audioEnabled) {
@@ -29,21 +35,22 @@ export function useAudioEngine() {
     }
   }, [audioEnabled, engine])
 
-  // Mute all voices without changing the global audio enabled state
   const pauseAudio = useCallback(() => {
     if (!engine.ready) return
-    engine.setActiveVoice("")   // empty string never matches any key → all silenced
+    engine.setActiveVoice("")   // empty string never matches → all silenced
   }, [engine])
 
-  // Update only the active voice — all others are silenced
-  const updateAudio = useCallback((animCV, firmOpts = {}, activeId = "varispeed") => {
+  const updateAudio = useCallback((
+    animCV:   Record<InputId, number>,
+    firmOpts: FirmOpts & { spliceCount: number },
+    activeId: InputId,
+  ) => {
     if (!engine.ready || !audioEnabled) return
-
     engine.setActiveVoice(activeId)
 
     if (activeId === "varispeed") {
-      const vsMetrics = getVSMetrics(animCV.varispeed, firmOpts.vsop || 0)
-      engine.setVarispeed(animCV.varispeed, vsMetrics.speed)
+      const { speed } = getVSMetrics(animCV.varispeed, firmOpts.vsop)
+      engine.setVarispeed(animCV.varispeed, speed)
 
     } else if (activeId === "genesize") {
       const grainPct = (1 - clamp(animCV.genesize, 0, 8) / 8) * 100
@@ -54,12 +61,13 @@ export function useAudioEngine() {
       engine.setSlide(animCV.slide, posPct)
 
     } else if (activeId === "morph") {
-      const stage = getMorphStage(animCV.morph)
-      engine.setMorph(animCV.morph, stage)
+      engine.setMorph(animCV.morph, getMorphStage(animCV.morph))
 
     } else if (activeId === "organize") {
-      const spliceCount = firmOpts.spliceCount || 8
-      const spliceIndex = Math.min(spliceCount - 1, Math.floor((clamp(animCV.organize, 0, 5) / 5) * spliceCount))
+      const spliceIndex = Math.min(
+        firmOpts.spliceCount - 1,
+        Math.floor((clamp(animCV.organize, 0, 5) / 5) * firmOpts.spliceCount),
+      )
       if (spliceIndex !== prevOrg.current) {
         engine.triggerOrganize(spliceIndex)
         prevOrg.current = spliceIndex
@@ -71,7 +79,6 @@ export function useAudioEngine() {
     }
   }, [audioEnabled, engine])
 
-  // Clean up on unmount
   useEffect(() => {
     return () => { engine.destroy() }
   }, [engine])

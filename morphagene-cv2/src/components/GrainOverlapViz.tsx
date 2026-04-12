@@ -1,7 +1,11 @@
-import { MF } from "../theme.js"
+import type { Theme } from "../types"
+import { MF } from "../theme"
 
 // ── Morph stage definitions ──────────────────────────────────────────────────
-const MORPH_STAGES = [
+interface GrainSlot { l: number; w: number }
+interface MorphStage { label: string; col: string; grains: GrainSlot[] }
+
+const MORPH_STAGES: MorphStage[] = [
   { label: "Gap / Silence",        col: "#546e7a", grains: [] },
   { label: "Seamless Loop",        col: "#26c6da", grains: [{ l: 0,  w: 68 }] },
   { label: "2× Overlap",           col: "#66bb6a", grains: [{ l: 0,  w: 62 }, { l: 32, w: 62 }] },
@@ -13,7 +17,13 @@ const MORPH_STAGES = [
 // Shows layered grain bars for the current Morph stage.
 // Responds to gnsm firmware toggle (hard vs smooth grain edges).
 
-export function GrainOverlapViz({ stage, gnsm, T }) {
+interface GrainOverlapVizProps {
+  stage: number
+  gnsm:  number
+  T:     Theme
+}
+
+export function GrainOverlapViz({ stage, gnsm, T }: GrainOverlapVizProps) {
   const info   = MORPH_STAGES[stage]
   const smooth = gnsm === 1
 

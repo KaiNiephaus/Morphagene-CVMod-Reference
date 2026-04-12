@@ -1,7 +1,7 @@
 // ── Firmware option descriptions ─────────────────────────────────────────────
 // Indexed by firmware key, then by option index (matching INPUTS firmware arrays)
 
-export const FW_NOTES = {
+export const FW_NOTES: Record<string, string[]> = {
   vsop: [
     "Default asymmetric range (+12/−26st). Non-linear, tape-flutter optimised. The curve above changes shape when you switch modes.",
     "1V/Oct bidirectional. ~2 octaves of reliable tracking range. Requires precise attenuverter calibration.",

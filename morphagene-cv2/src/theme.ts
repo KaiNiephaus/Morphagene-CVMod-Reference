@@ -1,18 +1,18 @@
-// ── Shared constants ─────────────────────────────────────────────────────────
+import type { Theme, ColorMap } from "./types"
 
+// ── Shared constants ─────────────────────────────────────────────────────────
 export const MF = "'DM Mono','Fira Code',monospace"
 
-/** Appends a 2-digit hex alpha to a 6-digit hex color string. opacity 0–1. */
-export function withAlpha(hex, opacity) {
+/** Appends a 2-digit hex alpha to a 6-digit hex color. opacity 0–1. */
+export function withAlpha(hex: string, opacity: number): string {
   const a = Math.round(clamp01(opacity) * 255).toString(16).padStart(2, "0")
   return hex + a
 }
 
-function clamp01(v) { return Math.max(0, Math.min(1, v)) }
+function clamp01(v: number): number { return Math.max(0, Math.min(1, v)) }
 
 // ── Theme colour tokens ──────────────────────────────────────────────────────
-
-export const DARK = {
+export const DARK: Theme = {
   bg: "#0a0a14", surface: "#14141e", surface2: "#1e1e2c",
   border: "#2e2e44", border2: "#3e3e5a",
   text: "#e4e4f0", muted: "#9090b8", dim: "#1a1a28",
@@ -20,7 +20,7 @@ export const DARK = {
   track: "#232338", tooltip: "#14141e",
 }
 
-export const LIGHT = {
+export const LIGHT: Theme = {
   bg: "#eceaf4", surface: "#ffffff", surface2: "#f0eef8",
   border: "#c4c0dc", border2: "#a8a4c8",
   text: "#0c0a20", muted: "#5a5878", dim: "#dedce8",
@@ -29,7 +29,7 @@ export const LIGHT = {
 }
 
 // Per-input accent colours — dark vs light variants
-export const DARK_COLORS = {
+export const DARK_COLORS: ColorMap = {
   varispeed: "#00e5ff",
   genesize:  "#ff9800",
   slide:     "#55dd33",
@@ -38,7 +38,7 @@ export const DARK_COLORS = {
   sos:       "#ff3f7f",
 }
 
-export const LIGHT_COLORS = {
+export const LIGHT_COLORS: ColorMap = {
   varispeed: "#006e8a",
   genesize:  "#b85800",
   slide:     "#206e20",

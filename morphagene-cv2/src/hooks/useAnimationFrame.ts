@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react"
 
+interface AnimationFrameResult {
+  animTime:  number
+  resetTime: () => void
+}
+
 /**
  * useAnimationFrame
  * Drives a requestAnimationFrame loop when `isPlaying` is true.
  * Returns the current elapsed time in seconds and a reset function.
- *
- * Usage:
- *   const { animTime, resetTime } = useAnimationFrame(isPlaying)
  */
-export function useAnimationFrame(isPlaying) {
+export function useAnimationFrame(isPlaying: boolean): AnimationFrameResult {
   const [animTime, setAnimTime] = useState(0)
-  const timeRef  = useRef(0)
-  const rafRef   = useRef(null)
+  const timeRef = useRef(0)
+  const rafRef  = useRef<number>(0)
 
   useEffect(() => {
     if (!isPlaying) {
@@ -19,7 +21,7 @@ export function useAnimationFrame(isPlaying) {
       return
     }
     const loop = () => {
-      timeRef.current += 0.016          // ~60fps tick
+      timeRef.current += 0.016   // ~60fps tick
       setAnimTime(timeRef.current)
       rafRef.current = requestAnimationFrame(loop)
     }
