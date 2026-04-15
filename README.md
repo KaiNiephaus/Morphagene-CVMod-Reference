@@ -1,4 +1,4 @@
-# Morphagene CV Modulation Reference
+# Morphagene CV Modulation Reference V3.1
 
 An interactive reference tool for the **Make Noise Morphagene** eurorack module.  
 Explore how CV voltages and modulation sources affect the module's core functions — visually and through audio.
