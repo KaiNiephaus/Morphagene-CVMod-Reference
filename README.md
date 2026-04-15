@@ -1,9 +1,17 @@
-# Morphagene CV Modulation Reference
+# Morphagene CV Modulation Reference V3.1
 
 An interactive reference tool for the **Make Noise Morphagene** eurorack module.  
-Explore how CV voltages and modulation sources affect the module's core functions — visually and through audio — before patching your hardware.
+Explore how CV voltages and modulation sources affect the module's core functions — visually and through audio.
 
 **→ [Open the app](https://morphagene-cv-reference.vercel.app/)**
+
+---
+## Overview
+
+<img width="1130" height="880" alt="Vari-Speed Overview" src="https://github.com/user-attachments/assets/9877f62b-4c52-4f9a-ad31-2989f6d988f3" />
+<img width="1158" height="836" alt="Morph Overview" src="https://github.com/user-attachments/assets/e2e19957-fae8-4358-a049-e3717faee5a9" />
+<img width="1158" height="842" alt="Organize Overview" src="https://github.com/user-attachments/assets/e82db944-477f-4a2b-808b-5bfbcd557129" />
+
 
 ---
 
@@ -28,7 +36,7 @@ This tool lets you:
 | **Vari-Speed** | ±4V | Playback pitch and direction. Negative voltage = reverse. |
 | **Gene Size** | 0–8V | The playback window within a splice — from full loop down to granular grain sizes. |
 | **Slide** | 0–8V | Where within a splice playback begins. Sweep it to scrub through audio. |
-| **Morph** | 0–5V | Grain density and overlap — from silent gap to four simultaneous pitched layers. |
+| **Morph** | 0–5V | Grain density and overlap — from single to four simultaneous pitched layers. |
 | **Organize** | 0–5V | Selects which splice plays. Stepped and quantised. |
 | **SOS** | 0–8V | Crossfade between live input and buffer playback. Normalised to +8V (frozen loop). |
 
@@ -46,12 +54,8 @@ Each input can be driven by one of four modulation sources:
 Press **Play** to animate the modulation live. The CV Over Time chart, stat readouts, and audio preview all update in real time.
 
 ---
+## Mobile Version -> Coming Soon
 
-## Screenshots
-
-<!-- Screenshots coming soon -->
-
----
 
 ## About the Morphagene
 
