@@ -132,7 +132,7 @@ export default function App() {
             MAKE NOISE MORPHAGENE
           </div>
           <div style={{ fontFamily: MF, fontSize: 10, color: T.muted, letterSpacing: "0.15em", marginTop: 1 }}>
-            CV MODULATION REFERENCE · v3.0 by TryError
+            CV MODULATION REFERENCE · mg204 · v3.0  
           </div>
         </div>
 
@@ -249,6 +249,28 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* ── Footer ── */}
+      <div style={{
+        background: T.panel, borderTop: `1px solid ${T.border}`,
+        padding: "7px 20px", display: "flex", alignItems: "center",
+        justifyContent: "space-between", flexShrink: 0, flexWrap: "wrap", gap: 4,
+      }}>
+        <span style={{ fontFamily: MF, fontSize: 10, color: T.muted, letterSpacing: "0.1em" }}>
+          VERSION 3.1 · BUILT WITH REACT, VITE, RECHARTS + WEB AUDIO API
+        </span>
+        <span style={{ fontFamily: MF, fontSize: 10, color: T.muted, letterSpacing: "0.08em" }}>
+          © 2026 – KAI-UWE NIEPHAUS / TRYERROR –{" "}
+          <a
+            href="https://github.com/kainiephaus"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: T.muted, textDecoration: "underline", textDecorationColor: T.border }}
+          >
+            GITHUB
+          </a>
+        </span>
+      </div>
     </div>
   )
 }
