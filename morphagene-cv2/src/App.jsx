@@ -253,21 +253,30 @@ export default function App() {
       {/* ── Footer ── */}
       <div style={{
         background: T.panel, borderTop: `1px solid ${T.border}`,
-        padding: "7px 20px", display: "flex", alignItems: "center",
+        padding: "10px 20px 14px", display: "flex", alignItems: "center",
         justifyContent: "space-between", flexShrink: 0, flexWrap: "wrap", gap: 4,
       }}>
         <span style={{ fontFamily: MF, fontSize: 10, color: T.muted, letterSpacing: "0.1em" }}>
-          VERSION 3.1 · BUILT WITH REACT, VITE, RECHARTS + WEB AUDIO API
+          Version 3.1 · Built with React, Vite, Recharts + Web Audio API
         </span>
         <span style={{ fontFamily: MF, fontSize: 10, color: T.muted, letterSpacing: "0.08em" }}>
-          © 2026 – KAI-UWE NIEPHAUS / TRYERROR –{" "}
+          © 2026 – Kai-Uwe Niephaus /{" "}
+          <a
+            href="https://open.spotify.com/intl-de/artist/5FAvJmvhBqHxkwyScSpjSw?si=yyCsPnEBTJaI9BSRGGmoyw"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: T.muted, textDecoration: "underline" }}
+          >
+            TryError
+          </a>
+          {" "}–{" "}
           <a
             href="https://github.com/kainiephaus"
             target="_blank"
             rel="noreferrer"
-            style={{ color: T.muted, textDecoration: "underline", textDecorationColor: T.border }}
+            style={{ color: T.muted, textDecoration: "underline" }}
           >
-            GITHUB
+            Github
           </a>
         </span>
       </div>
