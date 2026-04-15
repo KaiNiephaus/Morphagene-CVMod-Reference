@@ -132,7 +132,7 @@ export default function App() {
             MAKE NOISE MORPHAGENE
           </div>
           <div style={{ fontFamily: MF, fontSize: 10, color: T.muted, letterSpacing: "0.15em", marginTop: 1 }}>
-            CV MODULATION REFERENCE · mg204 · v3.0  
+            CV MODULATION REFERENCE · mg204 · v3.1  
           </div>
         </div>
 
