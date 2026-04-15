@@ -54,7 +54,7 @@ Each input can be driven by one of four modulation sources:
 Press **Play** to animate the modulation live. The CV Over Time chart, stat readouts, and audio preview all update in real time.
 
 ---
-
+## Mobile Version -> Coming Soon
 
 
 ## About the Morphagene
