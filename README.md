@@ -36,7 +36,7 @@ This tool lets you:
 | **Vari-Speed** | ±4V | Playback pitch and direction. Negative voltage = reverse. |
 | **Gene Size** | 0–8V | The playback window within a splice — from full loop down to granular grain sizes. |
 | **Slide** | 0–8V | Where within a splice playback begins. Sweep it to scrub through audio. |
-| **Morph** | 0–5V | Grain density and overlap — from silent gap to four simultaneous pitched layers. |
+| **Morph** | 0–5V | Grain density and overlap — from single to four simultaneous pitched layers. |
 | **Organize** | 0–5V | Selects which splice plays. Stepped and quantised. |
 | **SOS** | 0–8V | Crossfade between live input and buffer playback. Normalised to +8V (frozen loop). |
 
