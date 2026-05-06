@@ -28,6 +28,9 @@ export const LIGHT = {
   track: "#d8d4ec", tooltip: "#ffffff",
 }
 
+// Morph CLK-mode time-stretch zone colour (not tied to any single input)
+export const CLK_BLUE = "#1565c0"
+
 // Per-input accent colours — dark vs light variants
 export const DARK_COLORS = {
   varispeed: "#00e5ff",

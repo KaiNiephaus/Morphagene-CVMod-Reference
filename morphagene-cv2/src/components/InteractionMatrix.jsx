@@ -26,7 +26,7 @@ export function InteractionMatrix({ onSelect, getColor, T }) {
   return (
     <div style={{ paddingBottom: 24 }}>
       <p style={{ fontFamily: MF, fontSize: 12, color: T.muted, marginBottom: 16, lineHeight: 1.7 }}>
-        Hover any highlighted cell to see the patch interaction. Click to jump to that input.
+        Hover or tap any highlighted cell to see the patch interaction.
       </p>
 
       {/* Legend */}
@@ -99,7 +99,7 @@ export function InteractionMatrix({ onSelect, getColor, T }) {
                       <div
                         onMouseEnter={() => setHovered(hk)}
                         onMouseLeave={() => setHovered(null)}
-                        onClick={() => onSelect(row.id)}
+                        onTouchStart={e => { e.preventDefault(); setHovered(hk) }}
                         style={{
                           width: 40, height: 30, borderRadius: 2, cursor: "pointer",
                           background: isH ? ls.bg + "cc" : ls.bg,
@@ -142,7 +142,7 @@ export function InteractionMatrix({ onSelect, getColor, T }) {
           </>)
         })() : (
           <span style={{ fontFamily: MF, fontSize: 12, color: T.muted }}>
-            Hover a cell to see the patch interaction description
+            Hover or tap a cell to see the patch interaction
           </span>
         )}
       </div>
