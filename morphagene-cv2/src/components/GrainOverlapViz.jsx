@@ -2,7 +2,7 @@ import { MF } from "../theme.js"
 
 // ── Morph stage definitions ──────────────────────────────────────────────────
 const MORPH_STAGES = [
-  { label: "Gap / Silence",        col: "#546e7a", grains: [] },
+  { label: "Gapped Loop",           col: "#546e7a", grains: [] },
   { label: "Seamless Loop",        col: "#26c6da", grains: [{ l: 0,  w: 68 }] },
   { label: "2× Overlap",           col: "#66bb6a", grains: [{ l: 0,  w: 62 }, { l: 32, w: 62 }] },
   { label: "3× Overlap + Panning", col: "#ffa726", grains: [{ l: 0,  w: 56 }, { l: 22, w: 56 }, { l: 44, w: 56 }] },
@@ -28,7 +28,7 @@ export function GrainOverlapViz({ stage, gnsm, T }) {
             display: "flex", alignItems: "center", justifyContent: "center",
             height: "100%", fontFamily: MF, fontSize: 12, color: T.muted, letterSpacing: "0.08em",
           }}>
-            — SILENT GAP BETWEEN GENES —
+            — GAP BETWEEN GENE REPEATS —
           </div>
         ) : info.grains.map((g, i) => (
           <div key={i} style={{

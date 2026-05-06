@@ -8,18 +8,18 @@ import { GrainOverlapViz } from "../GrainOverlapViz.jsx"
 import { moPoints, getMorphStage } from "../../utils/math.js"
 import { MF } from "../../theme.js"
 
-const STAGE_LABELS = ["Gap", "Seamless", "2× Overlap", "3× Pan", "4×+Pitch"]
+const STAGE_LABELS = ["Gapped Loop", "Seamless", "2× Overlap", "3× Pan", "4×+Pitch"]
 const STAGE_COLORS = ["#546e7a", "#26c6da", "#66bb6a", "#ffa726", "#dd44ff"]
 
 export function MorphPanel({ cv, sCV, dotR, TT, T, col, firmOpts }) {
   const staticData = useMemo(() => moPoints(), [])
   const stage = getMorphStage(cv)
-  const dotDensity = cv < 0.8 ? 0.2 : cv < 1.5 ? 1 : cv < 2.8 ? 2 : cv < 4 ? 3 : 4
+  const dotDensity = cv < 1.5 ? 1 : cv < 2.8 ? 2 : cv < 4 ? 3 : 4
 
   const stats = [
     { label: "CV Voltage",    value: `${cv.toFixed(2)} V` },
     { label: "Stage",         value: STAGE_LABELS[stage], hi: STAGE_COLORS[stage] },
-    { label: "Active Grains", value: stage === 0 ? "0 (gap)" : String(stage) },
+    { label: "Active Grains", value: stage === 0 ? "1 (gapped)" : String(stage) },
     { label: "Pitch Scatter", value: stage >= 4 ? "ON" : "OFF", hi: stage >= 4 ? "#dd44ff" : T.muted },
   ]
 

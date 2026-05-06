@@ -143,50 +143,69 @@ class AudioEngine {
   }
 
   // ── MORPH ──────────────────────────────────────────────────────────────────
-  // Layered oscillators — active count matches grain stage (0–4).
-  // Stage 0: silence. Stage 4: four detuned oscillators + random pitch scatter.
+  // Fixed pool of 4 oscillators, always running — gains are ramped smoothly so
+  // zone transitions never click. A sine LFO on a shared gapGain node creates
+  // the zone-0 inter-gene gap: depth scales from full (cv=0) to zero (cv=0.8),
+  // where it becomes indistinguishable from seamless zone 1.
+  _initMorph() {
+    // All layers route through this node so the LFO and silence both work here
+    const gapGain = this.ctx.createGain()
+    gapGain.gain.value = 1.0
+    gapGain.connect(this.masterGain)
+
+    // Sine LFO — smooth gap pulse, no clicks
+    const lfo = this.ctx.createOscillator()
+    lfo.type = "sine"
+    lfo.frequency.value = 2.5   // ~2.5 Hz ≈ moderate gene repeat rate
+    const lfoDepth = this.ctx.createGain()
+    lfoDepth.gain.value = 0     // silent until zone 0 is active
+    lfo.connect(lfoDepth)
+    lfoDepth.connect(gapGain.gain)
+    lfo.start()
+
+    // Pitch intervals for up to 4 simultaneous layers (semitones above base)
+    const intervals = [0, 7, 12, 19]
+    const oscs = [], layerGains = []
+    intervals.forEach(semitones => {
+      const osc  = this.ctx.createOscillator()
+      const gain = this.ctx.createGain()
+      osc.type   = "sine"
+      osc.frequency.value = BASE_FREQ * Math.pow(2, semitones / 12)
+      osc.detune.value    = (Math.random() - 0.5) * 8
+      gain.gain.value     = 0
+      osc.connect(gain)
+      gain.connect(gapGain)
+      osc.start()
+      oscs.push(osc)
+      layerGains.push(gain)
+    })
+
+    this.voices["morph"] = { oscs, layerGains, gapGain, lfo, lfoDepth }
+  }
+
   setMorph(cv, stage) {
     if (!this._ready) return
-    const key = "morph"
+    if (!this.voices["morph"]) this._initMorph()
 
-    // Rebuild voices when stage changes layer count
-    if (!this.voices[key] || this.voices[key].stage !== stage) {
-      // Tear down old
-      if (this.voices[key]) {
-        this.voices[key].oscs.forEach(o => { try { o.stop() } catch (_) {} })
-      }
+    const { layerGains, gapGain, lfoDepth } = this.voices["morph"]
+    const t  = this.ctx.currentTime
+    const tc = 0.04   // 40 ms — smooth across zone boundaries, still responsive
 
-      if (stage === 0) {
-        this.voices[key] = { oscs: [], gains: [], stage }
-        return
-      }
+    // Ramp each layer gain — always at least 1 layer active
+    const activeCount  = Math.max(1, stage)
+    const perLayerGain = 0.12 / activeCount
+    layerGains.forEach((g, i) => {
+      g.gain.setTargetAtTime(i < activeCount ? perLayerGain : 0, t, tc)
+    })
 
-      // Pitch intervals per stage (semitones above base)
-      const intervals = [
-        [],
-        [0],
-        [0, 7],
-        [0, 7, 12],
-        [0, 7, 12, 19],
-      ][stage]
-
-      const oscs  = []
-      const gains = []
-      intervals.forEach(semitones => {
-        const osc  = this.ctx.createOscillator()
-        const gain = this.ctx.createGain()
-        osc.type   = "sine"
-        osc.frequency.value = BASE_FREQ * Math.pow(2, semitones / 12)
-        osc.detune.value    = (Math.random() - 0.5) * 8   // subtle natural detune
-        gain.gain.value     = 0.12 / stage
-        osc.connect(gain)
-        gain.connect(this.masterGain)
-        osc.start()
-        oscs.push(osc)
-        gains.push(gain)
-      })
-      this.voices[key] = { oscs, gains, stage }
-    }
+    // Gap effect: gapAmount=1 at cv=0, fades to 0 at cv=0.8, off above zone 0.
+    // gapGain oscillates between (1−gapAmount) and 1:
+    //   dc    = 1 − gapAmount/2   (0.5 → 1.0 as gap closes)
+    //   depth = gapAmount/2       (0.5 → 0   as gap closes)
+    //   total = dc + depth·sin(t) → min 0, max 1 at full gap; constant 1 at seamless
+    const gapAmount = stage === 0 ? Math.max(0, (0.8 - cv) / 0.8) : 0
+    gapGain.gain.setTargetAtTime(1 - gapAmount / 2, t, tc)
+    lfoDepth.gain.setTargetAtTime(gapAmount / 2,    t, tc)
   }
 
   // ── ORGANIZE ───────────────────────────────────────────────────────────────
@@ -252,7 +271,7 @@ class AudioEngine {
     Object.entries(this.voices).forEach(([key, voice]) => {
       if (!voice || key === id) return
       if (key === "morph") {
-        voice.gains?.forEach(g => g.gain.setTargetAtTime(0, t, 0.05))
+        voice.gapGain?.gain.setTargetAtTime(0, t, 0.05)
       } else if (key === "sos") {
         voice.liveGain?.gain.setTargetAtTime(0, t, 0.05)
         voice.bufGain?.gain.setTargetAtTime(0, t, 0.05)
