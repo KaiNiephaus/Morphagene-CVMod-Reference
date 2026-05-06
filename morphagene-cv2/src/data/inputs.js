@@ -41,7 +41,7 @@ export const INPUTS = [
     firmware: [
       { key: "ckop", label: "CLK MODE", options: ["Auto", "Force Gene Shift", "Force Time Stretch"] }
     ],
-    meta: ["0–5 V unipolar", "No attenuverter (unity)", "0V = gap/silence"],
+    meta: ["0–5 V unipolar", "No attenuverter (unity)", "0–0.8V = gapped loop"],
     description: "Controls grain density and overlap. Five stages from silent gap to four simultaneous pitched layers. With CLK patched: Gene Shift below ~10:00, Time Stretch above ~10:00.",
   },
   {

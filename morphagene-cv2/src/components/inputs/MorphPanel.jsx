@@ -14,7 +14,7 @@ const STAGE_COLORS = ["#546e7a", "#26c6da", "#66bb6a", "#ffa726", "#dd44ff"]
 export function MorphPanel({ cv, sCV, dotR, TT, T, col, firmOpts }) {
   const staticData = useMemo(() => moPoints(), [])
   const stage = getMorphStage(cv)
-  const dotDensity = cv < 1.5 ? 1 : cv < 2.8 ? 2 : cv < 4 ? 3 : 4
+  const dotDensity = cv < 0.8 ? 0.75 : cv < 1.5 ? 1 : cv < 2.8 ? 2 : cv < 4 ? 3 : 4
 
   const stats = [
     { label: "CV Voltage",    value: `${cv.toFixed(2)} V` },
