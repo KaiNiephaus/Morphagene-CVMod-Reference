@@ -203,7 +203,7 @@ class AudioEngine {
     //   dc    = 1 − gapAmount/2   (0.5 → 1.0 as gap closes)
     //   depth = gapAmount/2       (0.5 → 0   as gap closes)
     //   total = dc + depth·sin(t) → min 0, max 1 at full gap; constant 1 at seamless
-    const gapAmount = stage === 0 ? Math.max(0, (0.8 - cv) / 0.8) : 0
+    const gapAmount = stage === 0 ? Math.max(0, (0.625 - cv) / 0.625) : 0
     gapGain.gain.setTargetAtTime(1 - gapAmount / 2, t, tc)
     lfoDepth.gain.setTargetAtTime(gapAmount / 2,    t, tc)
   }
