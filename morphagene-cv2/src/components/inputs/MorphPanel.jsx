@@ -9,12 +9,13 @@ import { moPoints, getMorphStage } from "../../utils/math.js"
 import { MF } from "../../theme.js"
 
 const STAGE_LABELS = ["Gapped Loop", "Seamless", "2× Overlap", "3× Pan", "4×+Pitch"]
-const STAGE_COLORS = ["#546e7a", "#26c6da", "#66bb6a", "#ffa726", "#dd44ff"]
+// Hardware LED colors: Red for gaps+overlaps, Amber for seamless threshold and pitch-up zone
+const STAGE_COLORS = ["#e53935", "#f9a825", "#e53935", "#e53935", "#f9a825"]
 
 export function MorphPanel({ cv, sCV, dotR, TT, T, col, firmOpts }) {
   const staticData = useMemo(() => moPoints(), [])
   const stage = getMorphStage(cv)
-  const dotDensity = cv < 0.8 ? 0.75 : cv < 1.5 ? 1 : cv < 2.8 ? 2 : cv < 4 ? 3 : 4
+  const dotDensity = cv < 0.8 ? 0.75 : cv < 1.0 ? 1 : cv < 2.8 ? 2 : cv < 4.2 ? 3 : 4
 
   const stats = [
     { label: "CV Voltage",    value: `${cv.toFixed(2)} V` },
@@ -33,7 +34,7 @@ export function MorphPanel({ cv, sCV, dotR, TT, T, col, firmOpts }) {
         <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
         <XAxis dataKey="v" stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }} />
         <YAxis stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }} domain={[0, 4.5]} ticks={[0, 1, 2, 3, 4]} />
-        {[0.8, 1.5, 2.8, 4.0].map((x, i) => (
+        {[0.8, 1.0, 2.8, 4.2].map((x, i) => (
           <ReferenceLine key={x} x={x} stroke={T.border2} strokeDasharray="2 4"
             label={{ value: ["seam", "2×", "3×", "4×"][i], fill: T.muted, fontSize: 9, position: "top" }} />
         ))}
@@ -41,10 +42,20 @@ export function MorphPanel({ cv, sCV, dotR, TT, T, col, firmOpts }) {
         <ReferenceDot x={sCV} y={dotDensity} r={dotR} fill={col} stroke={T.surface} strokeWidth={2.5}
           style={{ filter: `drop-shadow(0 0 5px ${col})` }} />
         <defs>
+          {/* Hardware-accurate: Red = gaps + overlaps, Amber = seamless threshold + pitch-up zone
+              Zone boundaries at 0.8V=16%, 1.0V=20%, 2.8V=56%, 4.2V=84% of 0–5V range */}
           <linearGradient id="mo-g" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stopColor="#546e7a" stopOpacity={0.4} />
-            <stop offset="30%"  stopColor="#66bb6a" stopOpacity={0.4} />
-            <stop offset="80%"  stopColor="#dd44ff" stopOpacity={0.55} />
+            <stop offset="0%"    stopColor="#e53935" stopOpacity={0.45} />
+            <stop offset="15.8%" stopColor="#e53935" stopOpacity={0.45} />
+            <stop offset="16%"   stopColor="#f9a825" stopOpacity={0.7}  />
+            <stop offset="16.2%" stopColor="#e53935" stopOpacity={0.45} />
+            <stop offset="19.8%" stopColor="#e53935" stopOpacity={0.45} />
+            <stop offset="20%"   stopColor="#e53935" stopOpacity={0.45} />
+            <stop offset="55.8%" stopColor="#e53935" stopOpacity={0.45} />
+            <stop offset="56%"   stopColor="#e53935" stopOpacity={0.45} />
+            <stop offset="83.8%" stopColor="#e53935" stopOpacity={0.45} />
+            <stop offset="84%"   stopColor="#f9a825" stopOpacity={0.6}  />
+            <stop offset="100%"  stopColor="#f9a825" stopOpacity={0.6}  />
           </linearGradient>
         </defs>
         <Tooltip content={TT} />

@@ -1,12 +1,14 @@
 import { MF } from "../theme.js"
 
 // ── Morph stage definitions ──────────────────────────────────────────────────
+// Colors match hardware Morph Activity Window LED:
+// Red = Gapped + all overlap zones. Amber = Seamless threshold + Pitch-up zone.
 const MORPH_STAGES = [
-  { label: "Gapped Loop",           col: "#546e7a", grains: [] },
-  { label: "Seamless Loop",        col: "#26c6da", grains: [{ l: 0,  w: 68 }] },
-  { label: "2× Overlap",           col: "#66bb6a", grains: [{ l: 0,  w: 62 }, { l: 32, w: 62 }] },
-  { label: "3× Overlap + Panning", col: "#ffa726", grains: [{ l: 0,  w: 56 }, { l: 22, w: 56 }, { l: 44, w: 56 }] },
-  { label: "4× + Pitch Scatter",   col: "#dd44ff", grains: [{ l: 0,  w: 50 }, { l: 13, w: 50 }, { l: 26, w: 50 }, { l: 39, w: 50 }] },
+  { label: "Gapped Loop",           col: "#e53935", grains: [] },
+  { label: "Seamless Loop",         col: "#f9a825", grains: [{ l: 0,  w: 68 }] },
+  { label: "2× Overlap",            col: "#e53935", grains: [{ l: 0,  w: 62 }, { l: 32, w: 62 }] },
+  { label: "3× Overlap + Panning",  col: "#e53935", grains: [{ l: 0,  w: 56 }, { l: 22, w: 56 }, { l: 44, w: 56 }] },
+  { label: "4× + Pitch Scatter",    col: "#f9a825", grains: [{ l: 0,  w: 50 }, { l: 13, w: 50 }, { l: 26, w: 50 }, { l: 39, w: 50 }] },
 ]
 
 // ── GrainOverlapViz ──────────────────────────────────────────────────────────
