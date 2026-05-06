@@ -58,10 +58,10 @@ export const slPoints = () =>
   })
 
 export const moPoints = () =>
-  Array.from({ length: 51 }, (_, i) => {
-    const v = i * 0.1
+  Array.from({ length: 41 }, (_, i) => {
+    const v = +(i * 0.125).toFixed(3)
     const d = v < 0.625 ? 0.75 : v < 1.25 ? 1 : v < 2.5 ? 2 : v < 3.75 ? 3 : 4
-    return { v: +v.toFixed(1), density: d }
+    return { v, density: d }
   })
 
 export const orPoints = n =>
