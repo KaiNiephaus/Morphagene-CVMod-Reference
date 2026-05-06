@@ -15,7 +15,7 @@ const STAGE_COLORS = ["#e53935", "#f9a825", "#e53935", "#e53935", "#f9a825"]
 export function MorphPanel({ cv, sCV, dotR, TT, T, col, firmOpts }) {
   const staticData = useMemo(() => moPoints(), [])
   const stage = getMorphStage(cv)
-  const dotDensity = cv < 0.8 ? 0.75 : cv < 1.0 ? 1 : cv < 2.8 ? 2 : cv < 4.2 ? 3 : 4
+  const dotDensity = cv < 1.25 ? 0.75 : cv < 2.5 ? 1 : cv < 3.33 ? 2 : cv < 4.17 ? 3 : 4
 
   const stats = [
     { label: "CV Voltage",    value: `${cv.toFixed(2)} V` },
@@ -34,28 +34,29 @@ export function MorphPanel({ cv, sCV, dotR, TT, T, col, firmOpts }) {
         <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
         <XAxis dataKey="v" stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }} />
         <YAxis stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }} domain={[0, 4.5]} ticks={[0, 1, 2, 3, 4]} />
-        {[0.8, 1.0, 2.8, 4.2].map((x, i) => (
+        {/* Amber LED marker at 0.8V (manual: gap reaches zero here) */}
+        <ReferenceLine x={0.8} stroke="#f9a825" strokeDasharray="2 4" opacity={0.6}
+          label={{ value: "seam", fill: "#f9a825", fontSize: 9, position: "top" }} />
+        {/* Zone boundaries from proportional pie-chart distribution */}
+        {[1.25, 2.5, 3.33, 4.17].map((x, i) => (
           <ReferenceLine key={x} x={x} stroke={T.border2} strokeDasharray="2 4"
-            label={{ value: ["seam", "2×", "3×", "4×"][i], fill: T.muted, fontSize: 9, position: "top" }} />
+            label={{ value: ["1/1", "2×", "3×", "4×"][i], fill: T.muted, fontSize: 9, position: "top" }} />
         ))}
         <ReferenceLine x={sCV} stroke={col} strokeWidth={2} opacity={0.75} />
         <ReferenceDot x={sCV} y={dotDensity} r={dotR} fill={col} stroke={T.surface} strokeWidth={2.5}
           style={{ filter: `drop-shadow(0 0 5px ${col})` }} />
         <defs>
-          {/* Hardware-accurate: Red = gaps + overlaps, Amber = seamless threshold + pitch-up zone
-              Zone boundaries at 0.8V=16%, 1.0V=20%, 2.8V=56%, 4.2V=84% of 0–5V range */}
+          {/* Hardware LED colors. Zone %s based on proportional 5-zone distribution (0–5V):
+              0.8V=16% amber seam marker · 1.25V=25% · 2.5V=50% · 3.33V=66.6% · 4.17V=83.4%
+              Amber fades out over ~0.3V after the seam point so it's visually readable. */}
           <linearGradient id="mo-g" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%"    stopColor="#e53935" stopOpacity={0.45} />
-            <stop offset="15.8%" stopColor="#e53935" stopOpacity={0.45} />
-            <stop offset="16%"   stopColor="#f9a825" stopOpacity={0.7}  />
-            <stop offset="16.2%" stopColor="#e53935" stopOpacity={0.45} />
-            <stop offset="19.8%" stopColor="#e53935" stopOpacity={0.45} />
-            <stop offset="20%"   stopColor="#e53935" stopOpacity={0.45} />
-            <stop offset="55.8%" stopColor="#e53935" stopOpacity={0.45} />
-            <stop offset="56%"   stopColor="#e53935" stopOpacity={0.45} />
-            <stop offset="83.8%" stopColor="#e53935" stopOpacity={0.45} />
-            <stop offset="84%"   stopColor="#f9a825" stopOpacity={0.6}  />
-            <stop offset="100%"  stopColor="#f9a825" stopOpacity={0.6}  />
+            <stop offset="12%"   stopColor="#e53935" stopOpacity={0.45} />
+            <stop offset="16%"   stopColor="#f9a825" stopOpacity={0.75} />
+            <stop offset="22%"   stopColor="#e53935" stopOpacity={0.45} />
+            <stop offset="83.4%" stopColor="#e53935" stopOpacity={0.45} />
+            <stop offset="83.4%" stopColor="#f9a825" stopOpacity={0.65} />
+            <stop offset="100%"  stopColor="#f9a825" stopOpacity={0.65} />
           </linearGradient>
         </defs>
         <Tooltip content={TT} />

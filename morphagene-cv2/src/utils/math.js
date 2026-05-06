@@ -27,7 +27,7 @@ export function getVSMetrics(cv, vsop = 0) {
  */
 export function getMorphStage(cv) {
   const v = clamp(cv, 0, 5)
-  return v < 0.8 ? 0 : v < 1.0 ? 1 : v < 2.8 ? 2 : v < 4.2 ? 3 : 4
+  return v < 1.25 ? 0 : v < 2.5 ? 1 : v < 3.33 ? 2 : v < 4.17 ? 3 : 4
 }
 
 // ── Curve data builders ──────────────────────────────────────────────────────
@@ -60,7 +60,7 @@ export const slPoints = () =>
 export const moPoints = () =>
   Array.from({ length: 51 }, (_, i) => {
     const v = i * 0.1
-    const d = v < 0.8 ? 0.75 : v < 1.0 ? 1 : v < 2.8 ? 2 : v < 4.2 ? 3 : 4
+    const d = v < 1.25 ? 0.75 : v < 2.5 ? 1 : v < 3.33 ? 2 : v < 4.17 ? 3 : 4
     return { v: +v.toFixed(1), density: d }
   })
 
