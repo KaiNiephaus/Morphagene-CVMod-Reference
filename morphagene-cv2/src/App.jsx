@@ -257,7 +257,7 @@ export default function App() {
         justifyContent: "space-between", flexShrink: 0, flexWrap: "wrap", gap: 4,
       }}>
         <span style={{ fontFamily: MF, fontSize: 11, color: T.muted, letterSpacing: "0.1em" }}>
-          Version 3.1 · Built with React, Vite, Recharts + Web Audio API
+          Version 2.2 · Built with React, Vite, Recharts + Web Audio API
         </span>
         <span style={{ fontFamily: MF, fontSize: 11, color: T.muted, letterSpacing: "0.08em" }}>
           © 2026 – Kai-Uwe Niephaus /{" "}
