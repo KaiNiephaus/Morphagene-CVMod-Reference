@@ -9,7 +9,9 @@ Explore how CV voltages and modulation sources affect the module's core function
 ## Overview
 
 <img width="1130" height="880" alt="Vari-Speed Overview" src="https://github.com/user-attachments/assets/9877f62b-4c52-4f9a-ad31-2989f6d988f3" />
+<br>
 <img width="1158" height="836" alt="Morph Overview" src="https://github.com/user-attachments/assets/e2e19957-fae8-4358-a049-e3717faee5a9" />
+<br>
 <img width="1158" height="842" alt="Organize Overview" src="https://github.com/user-attachments/assets/e82db944-477f-4a2b-808b-5bfbcd557129" />
 
 
