@@ -25,8 +25,7 @@ export function OrganizePanel({ cv, T, col, firmOpts, spliceCount }) {
     <ResponsiveContainer width="100%" height={190}>
       <BarChart data={staticData} margin={{ left: -10, right: 10, top: 8, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
-        <XAxis dataKey="splice" stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }}
-          label={{ value: "splice #", fill: T.muted, fontSize: 10, position: "insideBottomRight", offset: -4 }} />
+        <XAxis dataKey="splice" stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }} />
         <YAxis stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }}
           domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]}
           label={{ value: "CV (V)", fill: T.muted, fontSize: 10, angle: -90, position: "insideLeft" }} />
