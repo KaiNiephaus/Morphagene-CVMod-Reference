@@ -16,7 +16,8 @@ export function SosPanel({ cv, sCV, dotR, T, col, firmOpts }) {
     { label: "CV Voltage",     value: `${cv.toFixed(2)} V` },
     { label: "Live Input",     value: `${(live * 100).toFixed(0)}%`, hi: buf < 0.5 ? "#55dd33" : T.muted },
     { label: "Buffer Feedbk.", value: `${(buf  * 100).toFixed(0)}%`, hi: buf > 0.5 ? "#ff3f7f" : T.muted },
-    { label: "Mode",           value: buf > 0.95 ? "FROZEN LOOP" : buf < 0.05 ? "LIVE ONLY" : "OVERDUB" },
+    { label: "Mode",           value: firmOpts.inop === 1 ? "INPUT ONLY" : buf > 0.95 ? "FROZEN LOOP" : buf < 0.05 ? "LIVE ONLY" : "OVERDUB",
+      hi: firmOpts.inop === 1 ? "#ff9800" : undefined },
   ]
 
   return (<>
@@ -69,6 +70,10 @@ export function SosPanel({ cv, sCV, dotR, T, col, firmOpts }) {
         <span style={{ fontFamily: MF, fontSize: 12, color: "#ff3f7f" }}>{(buf  * 100).toFixed(0)}%</span>
       </div>
     </div>
-    <Note T={T}>Normalised to +8V (no patch = full buffer feedback). Knob acts as attenuator when CV is patched. Use envelope → SOS for percussive loop captures. Enable <Mono T={T}>inop 1</Mono> to record raw input regardless of SOS level.</Note>
+    {firmOpts.inop === 1 ? (
+      <Note T={T}>Chart shows playback blend only — SOS no longer affects recording, which is always 100% live input. Overdubbing is not possible. Buffer is replaced at the end of each Splice length rather than accumulating.</Note>
+    ) : (
+      <Note T={T}>Normalised to +8V (no patch = full buffer feedback). Knob acts as attenuator when CV is patched. Use envelope → SOS for percussive loop captures. Enable <Mono T={T}>inop 1</Mono> to record raw input regardless of SOS level.</Note>
+    )}
   </>)
 }
