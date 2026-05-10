@@ -17,8 +17,13 @@ export function VarispeedPanel({ cv, sCV, dotR, TT, T, col, firmOpts }) {
     { label: "CV Voltage",  value: `${cv >= 0 ? "+" : ""}${cv.toFixed(2)} V` },
     { label: "Pitch Shift", value: `${semitones >= 0 ? "+" : ""}${semitones} st` },
     { label: "Speed ×",     value: `${speed.toFixed(4)}×` },
-    { label: "Direction",   value: cv < 0 ? "REVERSE" : cv === 0 ? "STOPPED" : "FORWARD",
-      hi: cv < 0 ? "#ff3f7f" : cv === 0 ? "#ff9800" : "#55dd33" },
+    { label: "Direction",
+      value: vsop === 2
+        ? (cv <= -4 ? "STOPPED" : cv < 0 ? "FORWARD (slow)" : "FORWARD")
+        : cv < 0 ? "REVERSE" : cv === 0 ? "STOPPED" : "FORWARD",
+      hi: vsop === 2
+        ? (cv <= -4 ? "#ff9800" : cv < 0 ? "#ffe033" : "#55dd33")
+        : cv < 0 ? "#ff3f7f" : cv === 0 ? "#ff9800" : "#55dd33" },
   ]
 
   return (<>
@@ -40,7 +45,7 @@ export function VarispeedPanel({ cv, sCV, dotR, TT, T, col, firmOpts }) {
       </LineChart>
     </ResponsiveContainer>
     <ChartTitle T={T}>Semitone Offset × CV</ChartTitle>
-    <ResponsiveContainer width="100%" height={150}>
+    <ResponsiveContainer width="100%" height={190}>
       <AreaChart data={staticData} margin={{ left: -10, right: 10, top: 8, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
         <XAxis dataKey="v" stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }} />

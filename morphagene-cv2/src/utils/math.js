@@ -10,13 +10,19 @@ export const snap1 = v => Math.round(v * 10) / 10
  * vsop: 0 = standard asymmetric, 1 = 1V/Oct bidir, 2 = 1V/Oct fwd only
  */
 export function getVSMetrics(cv, vsop = 0) {
-  const st = vsop === 1
-    ? cv * 12
-    : vsop === 2
-      ? Math.max(0, cv) * 12
-      : cv >= 0 ? cv * 3 : cv * 6.5
+  let st
+  if (vsop === 1) {
+    st = cv * 12
+  } else if (vsop === 2) {
+    // 0V = original pitch. Above 0V: 1V/Oct forward. Below 0V: linear speed taper to stop at -4V.
+    st = cv >= 0
+      ? cv * 12
+      : 12 * Math.log2(Math.max(0.0001, (cv + 4) / 4))
+  } else {
+    st = cv >= 0 ? cv * 3 : cv * 6.5
+  }
   return {
-    speed: +Math.pow(2, st / 12).toFixed(5),
+    speed: +Math.max(0, Math.pow(2, st / 12)).toFixed(5),
     semitones: +st.toFixed(2),
   }
 }
@@ -36,12 +42,18 @@ export function getMorphStage(cv) {
 export function vsPoints(vsop = 0) {
   return Array.from({ length: 81 }, (_, i) => {
     const v = -4 + i * 0.1
-    const st = vsop === 1
-      ? v * 12
-      : vsop === 2
-        ? Math.max(0, v) * 12
-        : v >= 0 ? v * 3 : v * 6.5
-    return { v: +v.toFixed(2), speed: +Math.pow(2, st / 12).toFixed(5), st: +st.toFixed(2) }
+    let st
+    if (vsop === 1) {
+      st = v * 12
+    } else if (vsop === 2) {
+      st = v >= 0
+        ? v * 12
+        : 12 * Math.log2(Math.max(0.0001, (v + 4) / 4))
+    } else {
+      st = v >= 0 ? v * 3 : v * 6.5
+    }
+    const speed = Math.max(0, Math.pow(2, st / 12))
+    return { v: +v.toFixed(2), speed: +speed.toFixed(5), st: +st.toFixed(2) }
   })
 }
 
