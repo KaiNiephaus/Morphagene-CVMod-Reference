@@ -28,6 +28,7 @@ export function OrganizePanel({ cv, T, col, firmOpts, spliceCount }) {
         <XAxis dataKey="splice" stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }}
           label={{ value: "splice #", fill: T.muted, fontSize: 10, position: "insideBottomRight", offset: -4 }} />
         <YAxis stroke={T.border2} tick={{ fill: T.muted, fontSize: 10, fontFamily: MF }}
+          domain={[0, 5]} ticks={[0, 1, 2, 3, 4, 5]}
           label={{ value: "CV (V)", fill: T.muted, fontSize: 10, angle: -90, position: "insideLeft" }} />
         <ReferenceLine y={cv} stroke={col} strokeWidth={2.5} opacity={0.85} />
         <Tooltip content={({ active, payload }) => active && payload?.length ? (
@@ -43,6 +44,8 @@ export function OrganizePanel({ cv, T, col, firmOpts, spliceCount }) {
         </Bar>
       </BarChart>
     </ResponsiveContainer>
-    <Note T={T}>Unity-gain 0–5V. Community reports up to 8V sometimes needed for final splices in large banks. Selection is quantised — no gradual crossfade. Toggle <Mono T={T}>omod 1</Mono> for immediate switching. Allow 2–4ms gate delay when combining CV + trigger to avoid timing races.</Note>
+    <div style={{ paddingBottom: 24 }}>
+      <Note T={T}>Unity-gain 0–5V. Community reports up to 8V sometimes needed for final splices in large banks. Selection is quantised — no gradual crossfade. Toggle <Mono T={T}>omod 1</Mono> for immediate switching. Allow 2–4ms gate delay when combining CV + trigger to avoid timing races.</Note>
+    </div>
   </>)
 }
