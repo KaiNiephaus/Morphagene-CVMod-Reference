@@ -71,7 +71,7 @@ export function SosPanel({ cv, sCV, dotR, T, col, firmOpts }) {
       </div>
     </div>
     {firmOpts.inop === 1 ? (
-      <Note T={T}>Chart shows playback blend only — SOS no longer affects recording, which is always 100% live input. Overdubbing is not possible. Buffer is replaced at the end of each Splice length rather than accumulating.</Note>
+      <Note T={T}>Chart shows playback blend only — SOS no longer controls overdub level; recording is always 100% live input. Layered overdubbing is not possible. Buffer is replaced at the end of each Splice length rather than accumulating.</Note>
     ) : (
       <Note T={T}>Normalised to +8V (no patch = full buffer feedback). Knob acts as attenuator when CV is patched. Use envelope → SOS for percussive loop captures. Enable <Mono T={T}>inop 1</Mono> to record raw input regardless of SOS level.</Note>
     )}
