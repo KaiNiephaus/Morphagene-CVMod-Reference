@@ -28,10 +28,10 @@ export function InteractionMatrix({ onSelect, getColor, T }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100%" }}>
       <p style={{ fontFamily: MF, fontSize: 12, color: T.muted, marginBottom: 16, lineHeight: 1.7 }}>
-        Hover or tap any highlighted cell to see the patch interaction.
+        Hover or tap any cell to explore how the combination of two functions <br />can be utilized to create a starting point for specific audio effects.
       </p>
 
-      {/* Constrained content block — fixed to table width so info box never reflows */}
+      
       <div style={{ width: MATRIX_W }}>
 
         {/* Legend — indented to align with grid cells */}
