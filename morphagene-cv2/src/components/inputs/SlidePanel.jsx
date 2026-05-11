@@ -34,22 +34,35 @@ export function SlidePanel({ cv, sCV, dotR, TT, T, col }) {
     </ResponsiveContainer>
     <ChartTitle T={T}>Tape Scrub Position (live)</ChartTitle>
     <div style={{ background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 3, padding: "12px 16px", marginBottom: 4 }}>
+      <div style={{ fontFamily: MF, fontSize: 9, color: T.muted, marginBottom: 6 }}>
+        ◀ SPLICE START —— SLIDE —— SPLICE END ▶
+      </div>
       <div style={{ position: "relative", height: 38 }}>
-        {Array.from({ length: 20 }, (_, i) => (
-          <div key={i} style={{
-            position: "absolute", left: `${i * 5}%`, top: 8, bottom: 8, width: "4.5%",
-            background: i < Math.floor(clamp(cv, 0, 8) / 8 * 20) ? T.surface : T.dim,
-            borderRight: `1px solid ${T.border}`,
-          }} />
-        ))}
+        {Array.from({ length: 20 }, (_, i) => {
+          const posN      = clamp(cv, 0, 8) / 8          // 0–1
+          const cellStart = i / 20
+          const cellEnd   = (i + 1) / 20
+          let bg
+          if (posN >= cellEnd) {
+            bg = col + "22"
+          } else if (posN <= cellStart) {
+            bg = T.dim
+          } else {
+            const pct = ((posN - cellStart) / (1 / 20) * 100).toFixed(1)
+            bg = `linear-gradient(90deg, ${col}22 ${pct}%, ${T.dim} ${pct}%)`
+          }
+          return (
+            <div key={i} style={{
+              position: "absolute", left: `${i * 5}%`, top: 0, bottom: 0, width: "4.5%",
+              background: bg, borderRight: `1px solid ${T.border}`,
+            }} />
+          )
+        })}
         <div style={{
           position: "absolute", left: `${pos}%`, top: 0, bottom: 0,
           width: 2.5, background: col, boxShadow: `0 0 10px ${col}`,
           transform: "translateX(-50%)", transition: "left 0.04s linear",
         }} />
-        <div style={{ position: "absolute", top: 5, left: 7, fontFamily: MF, fontSize: 9, color: T.muted }}>
-          ◀ SPLICE START ——  SLIDE ——  SPLICE END ▶
-        </div>
       </div>
     </div>
     <Note T={T}>Position changes are immediate — not quantised to gene boundaries. Use smooth CV sources (MATHS, slow LFO) to avoid clicks. A 0→8V ramp creates full chronological scrubbing without pitch change. Self-patch CV Out → Slide for content-reactive positioning.</Note>

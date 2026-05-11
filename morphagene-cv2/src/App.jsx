@@ -155,7 +155,7 @@ export default function App() {
         <div style={{ padding: "20px 24px", overflowY: "auto", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
           <InteractionMatrix
             onSelect={id => { setActiveId(id); setView("charts") }}
-            getColor={getColor} T={T}
+            getColor={getColor} T={T} isDark={isDark}
           />
         </div>
       ) : (

@@ -3,12 +3,23 @@ import { INPUTS, INPUT_MAP } from "../data/inputs.js"
 import { MATRIX_CELLS } from "../data/matrixCells.js"
 import { MF } from "../theme.js"
 
-const LEVEL_STYLE = [
+const LEVEL_DARK = [
   null,
-  { bg: "#1a1a36", bd: "#33335a", col: "#8888cc" },
-  { bg: "#1a2e1a", bd: "#2a4a2a", col: "#88bb88" },
-  { bg: "#2a1a36", bd: "#4a2a5a", col: "#cc88ff" },
+  { bg: "#1a1a36", bgH: "#252550", bd: "#33335a", col: "#8888cc" },
+  { bg: "#1a2e1a", bgH: "#243e24", bd: "#2a4a2a", col: "#88bb88" },
+  { bg: "#2a1a36", bgH: "#3a2050", bd: "#4a2a5a", col: "#cc88ff" },
 ]
+const LEVEL_LIGHT = [
+  null,
+  // Subtle — neutral lavender wash, matches theme surface tones
+  { bg: "#e4e2f0", bgH: "#d4d2e2", bd: "#aeacd0", col: "#5555a0" },
+  // Productive — muted green, derived from LIGHT_COLORS.slide (#206e20)
+  { bg: "#e0eae0", bgH: "#cddacd", bd: "#96b496", col: "#206e20" },
+  // High Synergy — muted purple, derived from LIGHT_COLORS.morph (#7700bb)
+  { bg: "#e8e0f2", bgH: "#d8d0e4", bd: "#ac96cc", col: "#7700bb" },
+]
+
+const getLevelStyle = isDark => isDark ? LEVEL_DARK : LEVEL_LIGHT
 
 const LABEL_COL = 64
 const CELL_W    = 64
@@ -22,8 +33,9 @@ function getCell(a, b) {
   return MATRIX_CELLS[key1] || MATRIX_CELLS[key2] || null
 }
 
-export function InteractionMatrix({ onSelect, getColor, T }) {
+export function InteractionMatrix({ onSelect, getColor, T, isDark = true }) {
   const [hovered, setHovered] = useState(null)
+  const LEVEL_STYLE = getLevelStyle(isDark)
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100%" }}>
@@ -107,7 +119,7 @@ export function InteractionMatrix({ onSelect, getColor, T }) {
                           onTouchStart={e => { e.preventDefault(); setHovered(hk) }}
                           style={{
                             width: 64, height: 44, borderRadius: 3, cursor: "pointer",
-                            background: isH ? ls.bg + "cc" : ls.bg,
+                            background: isH ? ls.bgH : ls.bg,
                             border: `1px solid ${isH ? ls.col : ls.bd}`,
                             display: "flex", alignItems: "center", justifyContent: "center",
                             transition: "all 0.1s",
