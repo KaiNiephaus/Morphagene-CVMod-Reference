@@ -44,12 +44,12 @@ export function SlidePanel({ cv, sCV, dotR, TT, T, col }) {
           const cellEnd   = (i + 1) / 20
           let bg
           if (posN >= cellEnd) {
-            bg = col + "22"
-          } else if (posN <= cellStart) {
             bg = T.dim
+          } else if (posN <= cellStart) {
+            bg = col + "22"
           } else {
             const pct = ((posN - cellStart) / (1 / 20) * 100).toFixed(1)
-            bg = `linear-gradient(90deg, ${col}22 ${pct}%, ${T.dim} ${pct}%)`
+            bg = `linear-gradient(90deg, ${T.dim} ${pct}%, ${col}22 ${pct}%)`
           }
           return (
             <div key={i} style={{
@@ -65,6 +65,6 @@ export function SlidePanel({ cv, sCV, dotR, TT, T, col }) {
         }} />
       </div>
     </div>
-    <Note T={T}>Position changes are immediate — not quantised to gene boundaries. Use smooth CV sources (MATHS, slow LFO) to avoid clicks. A 0→8V ramp creates full chronological scrubbing without pitch change. Self-patch CV Out → Slide for content-reactive positioning.</Note>
+    <Note T={T}>Slide offsets the Gene start point within the Splice — in relation to the length defined by Gene Size. Position changes are immediate, not quantised to gene boundaries. Use smooth CV sources (MATHS, slow LFO) to avoid clicks. A 0→8V ramp creates full chronological scrubbing without pitch change. Self-patch CV Out → Slide for content-reactive positioning.</Note>
   </>)
 }
