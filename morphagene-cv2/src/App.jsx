@@ -152,7 +152,7 @@ export default function App() {
 
       {/* ── Matrix view ── */}
       {view === "matrix" ? (
-        <div style={{ padding: "20px 24px", maxWidth: 740, overflowY: "auto" }}>
+        <div style={{ padding: "20px 24px", overflowY: "auto", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
           <InteractionMatrix
             onSelect={id => { setActiveId(id); setView("charts") }}
             getColor={getColor} T={T}
