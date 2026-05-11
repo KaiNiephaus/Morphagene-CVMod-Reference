@@ -27,7 +27,7 @@ export function InteractionMatrix({ onSelect, getColor, T }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100%" }}>
-      <p style={{ fontFamily: MF, fontSize: 12, color: T.muted, marginBottom: 16, lineHeight: 1.7 }}>
+      <p style={{ fontFamily: MF, fontSize: 12, color: T.muted, marginBottom: 28, lineHeight: 1.7 }}>
         Hover or tap any cell to explore how the combination of two functions <br />can be utilized to create a starting point for specific audio effects.
       </p>
 
@@ -129,7 +129,7 @@ export function InteractionMatrix({ onSelect, getColor, T }) {
         {/* Description box — width matches table via fit-content parent */}
         <div style={{
           marginTop: 16, minHeight: 100, padding: "14px 16px",
-          width: MATRIX_W, boxSizing: "border-box",
+          marginLeft: LABEL_COL, width: MATRIX_W - LABEL_COL, boxSizing: "border-box",
           background: T.surface2, border: `1px solid ${T.border}`, borderRadius: 3,
           overflow: "hidden",
         }}>
